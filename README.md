@@ -7,7 +7,7 @@ libchannels is a high performance library that extends libuv to scale and use al
 libchannels pins a connection to a thread which often result in a connection being pinned to a specific CPU core. This ensures that the TCP buffer data has a high chance of L1/L2/L3 CPU cache hits and enables building high performing TCP network services.
 
 # Raw I/O Benchmarks
-Benchmarking raw HTTP request/response throughput we can reach over `17 million requests/second`. Keep in mind this benchmark isn't parsing HTTP requests. It's purely measuring the request/response I/O performance.
+Benchmarking raw HTTP request/response throughput we can reach over `17 million requests/second` using `2% CPU usage` in userland. Keep in mind this benchmark isn't parsing HTTP requests. It's purely measuring the request/response I/O performance.
 
 ```
 wrk --script pipeline.lua --latency -d 60s -t 20 -c 512 http://IP:80 -- 64
