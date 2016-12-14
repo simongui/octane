@@ -2,6 +2,8 @@ projectpath = ${CURDIR}
 libuv_path = ${projectpath}/lib/libuv
 wrk_path = ${projectpath}/lib/wrk
 wrk2_path = ${projectpath}/lib/wrk2
+sds_path = ${projectpath}/lib/sds
+
 
 ifeq ($(OS),Windows_NT)
 		OPERATING_SYSTEM = WINDOWS
@@ -74,6 +76,9 @@ $(wrk2_path)/wrk:
 	if [ ! -d "$(wrk2_path)" ]; then git clone https://github.com/giltene/wrk2.git $(wrk2_path); fi
 	cd $(wrk2_path);make
 
+$(sds_path):
+	if [ ! -d "$(sds_path)" ]; then git clone https://github.com/antirez/sds.git $(sds_path); fi
+
 tools: $(wrk_path)/wrk $(wrk2_path)/wrk
 
-deps: $(libuv_path)/.libs/libuv.a
+deps: $(libuv_path)/.libs/libuv.a $(sds_path)

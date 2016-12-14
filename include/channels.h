@@ -67,13 +67,14 @@ typedef enum dispatch_type
 /*
  * connection is a struct representing a TCP client connection to the server.
  */
-typedef struct
-{
-    uv_tcp_t stream;
-    enum {OPEN, CLOSING, CLOSED} state;
-    void* data;
-    int bytes_remaining;
-} connection;
+//typedef struct
+//{
+//    uv_tcp_t stream;
+//    enum {OPEN, CLOSING, CLOSED} state;
+//    void* data;
+//    int bytes_remaining;
+//    int request_length;
+//} connection;
 
 /*
  * uv_multi_listen is similar to uv_listen except it allows creating event

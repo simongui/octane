@@ -45,6 +45,8 @@ GET_PROPERTY(libchannels_location TARGET libchannels PROPERTY LOCATION)
 # Hello world sample
 # ----------------------------------------
 file(GLOB_RECURSE HELLOWORLD_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/lib/sds/*.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/lib/sds/*.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/hello_world/*.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/hello_world/*.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/hello_world/*.c
@@ -53,6 +55,7 @@ file(GLOB_RECURSE HELLOWORLD_SOURCES
 list(SORT HELLOWORLD_SOURCES)
 create_source_group("Source Files" "${CMAKE_CURRENT_SOURCE_DIR}/src" ${HELLOWORLD_SOURCES})
 include_directories(${CMAKE_SOURCE_DIR}/lib/libuv/include)
+include_directories(${CMAKE_SOURCE_DIR}/lib/sds)
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
 find_package(Threads REQUIRED)
