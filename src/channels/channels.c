@@ -52,6 +52,10 @@ int uv_multi_listen(const char* address, int port, bool tcp_nodelay, unsigned in
 
 void reuseport_thread_start(void *arg)
 {
+#ifdef UNIX
+    signal(SIGPIPE, SIG_IGN);
+#endif // UNIX
+
     int rc;
     struct listener* listener;
     uv_loop_t* loop;

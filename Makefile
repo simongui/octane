@@ -3,7 +3,8 @@ libuv_path = ${projectpath}/lib/libuv
 wrk_path = ${projectpath}/lib/wrk
 wrk2_path = ${projectpath}/lib/wrk2
 sds_path = ${projectpath}/lib/sds
-
+lockless_path = ${projectpath}/lib/lockless_allocator
+tcmalloc_path = ${projectpath}/lib/tcmalloc
 
 ifeq ($(OS),Windows_NT)
 		OPERATING_SYSTEM = WINDOWS
@@ -79,6 +80,17 @@ $(wrk2_path)/wrk:
 $(sds_path):
 	if [ ! -d "$(sds_path)" ]; then git clone https://github.com/antirez/sds.git $(sds_path); fi
 
+$(tcmalloc_path):
+	if [ ! -d "$(tcmalloc_path)" ]; then git clone https://github.com/gperftools/gperftools.git $(tcmalloc_path); fi
+	cd $(tcmalloc_path);./autogen.sh
+	cd $(tcmalloc_path);./configure
+	cd $(tcmalloc_path);make
+
+$(lockless_path):
+	if [ ! -d "$(lockless_path)" ]; then wget https://locklessinc.com/downloads/lockless_allocator_src.tgz -P lib; fi
+	cd lib;tar xvzf lockless_allocator_src.tgz
+	cd lib/lockless_allocator;make
+
 tools: $(wrk_path)/wrk $(wrk2_path)/wrk
 
-deps: $(libuv_path)/.libs/libuv.a $(sds_path)
+deps: $(libuv_path)/.libs/libuv.a $(sds_path) $(tcmalloc_path) $(lockless_path)
