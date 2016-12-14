@@ -4,13 +4,49 @@ libuv is a cross-platform  asynchronous I/O library that only uses a single even
 libchannels is a high performance library that extends libuv to scale and use all the available CPU cores on a system for TCP traffic by using multiple event loops across multiple threads.
 
 # Optimizations
-libchannels pins a connection to a thread which often result in a connection being pinned to a specific CPU core. This ensures that the TCP buffer data has a high chance of L1/L2/L3 CPU cache hits and enables building high performing TCP network services.
+- Prefers a thread count that matches physical CPU cores excluding hyper-threaded cores.
+- TCP connections pinned to physical CPU cores for low context switching and high L1/L2/L3 cache hits.
+- Zero-copy optimizations.
+- High performance memory allocators.
+  - A high performance lockless memory allocator is available for `Linux` to scale to higher CPU core counts to reduce CPU contention and stalls between CPU cores.
+
+# Supported Platforms
+Platforms supported:
+- Linux
+- macOS
+
+Windows could be supported pretty easily with a little work.
+
+# Compiling
+Compiling `libchannels` and a `hello_world` HTTP server example.
+```
+make
+```
+
+Compiling benchmarking tools.
+```
+make tools
+```
+
+# Memory Allocators
+You can use `LD_PRELOAD` to use different memory allocators with libchannels.
+
+TCMalloc
+```
+LD_PRELOAD="./lib/tcmalloc/.libs/libtcmalloc_minimal.so" ./build/hello_world
+```
+
+Lockless
+```
+LD_PRELOAD="./lib/lockless_allocator/libllalloc.so.1.3" ./build/hello_world
+```
+
 
 # Raw I/O Benchmarks
 Benchmarking raw HTTP request/response throughput we can reach over `17 million requests/second` using `2% CPU usage` in userland. Keep in mind this benchmark isn't parsing HTTP requests. It's purely measuring the request/response I/O performance.
 
 ```
-wrk --script pipeline.lua --latency -d 60s -t 20 -c 512 http://IP:80 -- 64
+./lib/wrk/wrk --script ./benchmark/pipelined.lua --latency -d 60s -t 20 -c 512 http://IP:80 -- 64
 Running 1m test @ http://IP:80
   20 threads and 512 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev

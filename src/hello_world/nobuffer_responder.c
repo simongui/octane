@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <uv.h>
 #include "nobuffer_responder.h"
 #include "connection.h"

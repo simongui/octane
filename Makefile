@@ -57,7 +57,7 @@ xcode: deps
 	if [ ! -d "build/libchannels.xcodeproj" ]; then cd build;cmake -DCMAKE_OSX_ARCHITECTURES=x86_64 -G Xcode ..; fi
 	cd build;xcodebuild -project libchannels.xcodeproj/
 
-linux:
+linux: $(lockless_path)
 	rm -rf build
 	mkdir -p build
 	cd build;cmake ..
@@ -93,4 +93,4 @@ $(lockless_path):
 
 tools: $(wrk_path)/wrk $(wrk2_path)/wrk
 
-deps: $(libuv_path)/.libs/libuv.a $(sds_path) $(tcmalloc_path) $(lockless_path)
+deps: $(libuv_path)/.libs/libuv.a $(sds_path) $(tcmalloc_path)
