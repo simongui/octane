@@ -16,9 +16,14 @@ typedef struct {
 void stream_on_connect(uv_stream_t* stream, int status);
 void stream_on_alloc(uv_handle_t* client, size_t suggested_size, uv_buf_t* buf);
 void stream_on_read(uv_stream_t* tcp, ssize_t nread, const uv_buf_t* buf);
-void after_write(uv_write_t* req, int status);
+
+void (*stream_on_read_func)(connection* conn, size_t requests, uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf);
 
 int main(int args, char **argsv) {
+    stream_on_read_func = &stream_on_read_static;
+    //stream_on_read_func = &stream_on_read_sds;
+    //stream_on_read_func = &stream_on_read_nobuffer;
+
     uv_async_t* service_handle = 0;
     uv_loop_t* loop = uv_default_loop();
 
@@ -68,10 +73,7 @@ void stream_on_read(uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf) {
         ssize_t requests = (nread + conn->bytes_remaining) / conn->request_length;
         conn->bytes_remaining = conn->bytes_remaining + (nread % conn->request_length);
 
-        stream_on_read_static(conn, requests, stream, nread, buf);
-        //stream_on_read_sds(conn, requests, stream, nread, buf);
-        //stream_on_read_nobuffer(conn, write_req, requests, stream, nread, buf, after_write);
-
+        stream_on_read_func(conn, requests, stream, nread, buf);
         free(buf->base);
     }
 }

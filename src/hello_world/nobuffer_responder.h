@@ -2,6 +2,8 @@
 
 #include <uv.h>
 #include "connection.h"
+#include "write_batch.h"
 
-uv_buf_t* create_response_nobuffer(uv_write_t* write_req);
-void stream_on_read_nobuffer(connection* conn, uv_write_t *write_req, size_t requests, uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf, uv_write_cb cb);
+void create_response_nobuffer(write_batch* batch);
+void stream_on_read_nobuffer(connection* conn, size_t requests, uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf);
+void after_write_nobuffer(uv_write_t* req, int status);
