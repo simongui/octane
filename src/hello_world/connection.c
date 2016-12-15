@@ -12,5 +12,5 @@ connection* create_connection()
 }
 
 void free_connection(connection* conn) {
-
+    free(conn);
 }

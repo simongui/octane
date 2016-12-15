@@ -121,11 +121,7 @@ void stream_on_alloc(uv_handle_t* client, size_t suggested_size, uv_buf_t* buf) 
 void stream_on_read(uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf) {
     connection* conn = stream->data;
 
-    if (nread < 0) {
-        return;
-    } else if (nread == 0) {
-        return;
-    } else if (nread > 0) {
+    if (nread > 0) {
         if (conn->request_length == 0) {
             // We need to seek the first request to find out how many characters each request is.
             for (int i = 1; i < nread; i++) {
