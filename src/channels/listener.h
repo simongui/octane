@@ -28,7 +28,7 @@ struct listener
     const char* address;
     int port;
     bool tcp_nodelay;
-    unsigned int listen_backlog;
+    int listen_backlog;
     uv_connection_cb connection_cb;
     uv_alloc_cb alloc_cb;
 };

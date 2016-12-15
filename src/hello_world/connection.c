@@ -4,9 +4,13 @@
 
 connection* create_connection()
 {
-    //connection* conn = malloc(sizeof(connection));
     connection* conn = calloc(1, sizeof(connection));
     conn->bytes_remaining = 0;
     conn->request_length = 0;
+    conn->keep_alive = true;
     return conn;
+}
+
+void free_connection(connection* conn) {
+
 }

@@ -15,7 +15,7 @@ uv_async_t* listener_async_handles;
 
 void reuseport_thread_start(void *arg);
 
-int uv_multi_listen(const char* address, int port, bool tcp_nodelay, unsigned int threads, enum dispatch_type dispatcher, uv_loop_t* loop, int backlog, uv_connection_cb cb, uv_alloc_cb alloc_cb) {
+int uv_multi_listen(const char* address, int port, bool tcp_nodelay, unsigned int threads, enum dispatch_type dispatcher, uv_loop_t* loop, int backlog, uv_connection_cb cb) {
     #ifdef UNIX
         signal(SIGPIPE, SIG_IGN);
     #endif // UNIX
@@ -40,6 +40,7 @@ int uv_multi_listen(const char* address, int port, bool tcp_nodelay, unsigned in
             listener->address = address;
             listener->port = port;
             listener->tcp_nodelay = tcp_nodelay;
+            listener->listen_backlog = backlog;
             listener->connection_cb = cb;
             int rc = uv_thread_create(&listener->thread_id, reuseport_thread_start, listener);
         }
@@ -84,7 +85,7 @@ void reuseport_thread_start(void *arg)
     }
 
     uv_tcp_bind(&server, (const struct sockaddr*)&addr, 0);
-    int r = uv_listen((uv_stream_t*) &server, 128, listener->connection_cb);
+    int r = uv_listen((uv_stream_t*) &server, listener->listen_backlog, listener->connection_cb);
 
     rc = uv_run(loop, UV_RUN_DEFAULT);
     uv_loop_delete(loop);

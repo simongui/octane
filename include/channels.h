@@ -99,4 +99,4 @@ typedef enum dispatch_type
  * uv_alloc_cb
  *      Callback that gets called when libuv requires memory to be allocated.
  */
-LIBCHANNELS_EXTERN int uv_multi_listen(const char* address, int port, bool tcp_nodelay, unsigned int threads, enum dispatch_type dispatcher, uv_loop_t* loop, int connection_backlog, uv_connection_cb cb, uv_alloc_cb alloc_cb);
+LIBCHANNELS_EXTERN int uv_multi_listen(const char* address, int port, bool tcp_nodelay, unsigned int threads, enum dispatch_type dispatcher, uv_loop_t* loop, int connection_backlog, uv_connection_cb cb);

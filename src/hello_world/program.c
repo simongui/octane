@@ -4,9 +4,9 @@
 #include <channels.h>
 #include "common.h"
 #include "connection.h"
-#include "static_responder.h"
-#include "sds_responder.h"
-#include "nobuffer_responder.h"
+#include "responders/static_responder.h"
+#include "responders/sds_responder.h"
+#include "responders/nobuffer_responder.h"
 
 typedef struct {
   uv_write_t req;
@@ -27,7 +27,73 @@ int main(int args, char **argsv) {
     uv_async_t* service_handle = 0;
     uv_loop_t* loop = uv_default_loop();
 
-    uv_multi_listen("0.0.0.0", 8000, false, 20, DISPATCH_TYPE_REUSEPORT, loop, 128, stream_on_connect, stream_on_alloc);
+    uv_multi_listen("0.0.0.0", 8000, false, 20, DISPATCH_TYPE_REUSEPORT, loop, 128, stream_on_connect);
+}
+
+void send_error_response(connection* conn, request_state state) {
+
+}
+
+void stream_on_close(uv_handle_t* handle)
+{
+    uv_handle_t* stream = handle;
+    connection* conn = stream->data;
+
+    if (conn->state != CLOSED) {
+        conn->state = CLOSED;
+        connection* conn = (connection*)handle->data;
+        free_connection(conn);
+    }
+}
+
+void stream_close_connection(connection* conn) {
+    if (conn->state == OPEN) {
+        conn->state = CLOSING;
+        uv_close(&conn->stream, stream_on_close);
+    }
+}
+
+void handle_request_error(connection* conn, request_state state)
+{
+    uv_handle_t* stream = &conn->stream;
+
+    if (conn->state == OPEN) {
+        uv_read_stop(stream);
+    }
+
+    conn->keep_alive = false;
+
+    if (conn->state == OPEN) {
+        /* Send the error message back. */
+        send_error_response(conn, state);
+    } else {
+        stream_close_connection(conn);
+    }
+}
+
+void handle_bad_request(connection* conn)
+{
+    handle_request_error(conn, BAD_REQUEST);
+}
+
+void handle_buffer_exceeded_error(connection* conn)
+{
+    handle_request_error(conn, SIZE_EXCEEDED);
+}
+
+void handle_internal_error(connection* conn)
+{
+    handle_request_error(conn, INTERNAL_ERROR);
+}
+
+void stream_on_shutdown(uv_shutdown_t* req, int status)
+{
+    connection* conn = req->data;
+    uv_handle_t* stream = &conn->stream;
+    if (conn->state == OPEN) {
+        stream_close_connection(conn);
+    }
+    free(req);
 }
 
 void stream_on_connect(uv_stream_t* server_stream, int status) {
@@ -75,5 +141,21 @@ void stream_on_read(uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf) {
 
         stream_on_read_func(conn, requests, stream, nread, buf);
         free(buf->base);
+    }
+    else if (nread == UV_ENOBUFS) {
+        handle_buffer_exceeded_error(conn);
+    }
+    else if (nread == UV_EOF){
+        uv_shutdown_t* req = malloc(sizeof(uv_shutdown_t));
+        req->data = conn;
+        uv_shutdown(req, &conn->stream, stream_on_shutdown);
+    }
+    else if (nread == UV_ECONNRESET || nread == UV_ECONNABORTED) {
+        /* Let's close the connection as the other peer just disappeared */
+        stream_close_connection(conn);
+    } else {
+        /* We didn't see this coming, but an unexpected UV error code was passed in, so we'll
+         * respond with a blanket 500 error if we can */
+        handle_internal_error(conn);
     }
 }
