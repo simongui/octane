@@ -1,8 +1,8 @@
 #include <uv.h>
 #include <sds.h>
 #include "sds_responder.h"
-#include "connection.h"
-#include "write_batch.h"
+#include "../connection.h"
+#include "../write_batch.h"
 
 void create_response_sds(write_batch* batch) {
     sds response_buffer = sdsnew("HTTP/1.1 200 OK\r\nServer: libchannels/master\r\nContent-Type: text/plain\r\nContent-Length: 15\r\n");

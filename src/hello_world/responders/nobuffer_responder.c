@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <uv.h>
 #include "nobuffer_responder.h"
-#include "write_batch.h"
+#include "../write_batch.h"
 
 void create_response_nobuffer(write_batch* batch) {
     batch->buffers[batch->number_of_used_buffers].base = "HTTP/1.1 200 OK\r\n";
