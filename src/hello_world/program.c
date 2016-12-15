@@ -57,7 +57,6 @@ void stream_on_read(uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf) {
             for (int i = 1; i < nread; i++) {
                 if (buf->base[i] == '\r' && buf->base[i - 1] == '\n') {
                     conn->request_length = i + 2;
-                    //printf("LENGTH: %d\n", request_length);
                     break;
                 }
             }
@@ -65,14 +64,12 @@ void stream_on_read(uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf) {
 
         ssize_t requests = (nread + conn->bytes_remaining) / conn->request_length;
         conn->bytes_remaining = conn->bytes_remaining + (nread % conn->request_length);
-        uv_write_t *write_req = (uv_write_t *) malloc(sizeof(*write_req) + sizeof(uv_buf_t));
 
-        stream_on_read_static(conn, write_req, requests, stream, nread, buf, after_write);
+        stream_on_read_static(conn, requests, stream, nread, buf);
         //stream_on_read_bstrlib(conn, write_req, requests, stream, nread, buf, after_write);
         //stream_on_read_sds(conn, write_req, requests, stream, nread, buf, after_write);
         //stream_on_read_nobuffer(conn, write_req, requests, stream, nread, buf, after_write);
-    }
-}
 
-void after_write(uv_write_t* req, int status) {
+        free(buf->base);
+    }
 }
