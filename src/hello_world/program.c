@@ -2,9 +2,9 @@
 #include <uv.h>
 #include <stdlib.h>
 #include <channels.h>
+#include "common.h"
 #include "connection.h"
 #include "static_responder.h"
-#include "bstrlib_responder.h"
 #include "sds_responder.h"
 #include "nobuffer_responder.h"
 
@@ -40,7 +40,10 @@ void stream_on_connect(uv_stream_t* server_stream, int status) {
 }
 
 void stream_on_alloc(uv_handle_t* client, size_t suggested_size, uv_buf_t* buf) {
-    char* buffer = malloc(suggested_size);
+    char* buffer;
+    if(!(buffer = malloc(suggested_size))){
+        memory_error("Unable to allocate buffer of size %d", suggested_size);
+    }
     *buf = uv_buf_init(buffer, suggested_size);
 }
 
@@ -66,8 +69,7 @@ void stream_on_read(uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf) {
         conn->bytes_remaining = conn->bytes_remaining + (nread % conn->request_length);
 
         stream_on_read_static(conn, requests, stream, nread, buf);
-        //stream_on_read_bstrlib(conn, write_req, requests, stream, nread, buf, after_write);
-        //stream_on_read_sds(conn, write_req, requests, stream, nread, buf, after_write);
+        //stream_on_read_sds(conn, requests, stream, nread, buf);
         //stream_on_read_nobuffer(conn, write_req, requests, stream, nread, buf, after_write);
 
         free(buf->base);
