@@ -6,7 +6,7 @@
 
 #define RESPONSE \
     "HTTP/1.1 200 OK\r\n" \
-    "Server: libchannels/master\r\n" \
+    "Server: octane\r\n" \
     "Date: Mon Dec 12 00:00:00 2016\r\n" \
     "Content-Type: text/plain\r\n" \
     "Content-Length: 15\r\n" \

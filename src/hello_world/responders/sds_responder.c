@@ -5,12 +5,12 @@
 #include "../write_batch.h"
 
 void create_response_sds(write_batch* batch) {
-    //sds response_buffer = sdsnew("HTTP/1.1 200 OK\r\nServer: libchannels/master\r\nContent-Type: text/plain\r\nContent-Length: 15\r\n");
+    //sds response_buffer = sdsnew("HTTP/1.1 200 OK\r\nServer: octane/master\r\nContent-Type: text/plain\r\nContent-Length: 15\r\n");
     //response_buffer = sdscat(response_buffer, "Date: Mon Dec 12 00:00:00 2016\r\n");
     //response_buffer = sdscat(response_buffer, "\r\nHello, World!\n\n");
 
     sds response_buffer = sdsnew("HTTP/1.1 200 OK\r\n");
-    response_buffer = sdscat(response_buffer, "Server: libchannels\r\n");
+    response_buffer = sdscat(response_buffer, "Server: octane\r\n");
     response_buffer = sdscat(response_buffer, "Content-Type: text/plain\r\n");
     response_buffer = sdscat(response_buffer, "Content-Length: 15\r\n");
     response_buffer = sdscat(response_buffer, "Date: Mon Dec 12 00:00:00 2016\r\n");

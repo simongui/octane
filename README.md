@@ -1,7 +1,7 @@
-# LIBCHANNELS Overview
+# Octane Overview
 libuv is a cross-platform  asynchronous I/O library that only uses a single event loop thread for TCP traffic.
 
-libchannels is a high performance library that extends libuv to scale and use all the available CPU cores on a system for TCP traffic by using multiple event loops across multiple threads.
+Octane is a high performance library that extends libuv to scale and use all the available CPU cores on a system for TCP traffic by using multiple event loops across multiple threads.
 
 # Optimizations
 - Prefers a thread count that matches physical CPU cores excluding hyper-threaded cores.
@@ -18,7 +18,7 @@ Platforms supported:
 Windows could be supported pretty easily with a little work.
 
 # Compiling
-Compiling `libchannels` and a `hello_world` HTTP server example.
+Compiling `octane` and a `hello_world` HTTP server example.
 ```
 make
 ```
@@ -29,7 +29,7 @@ make tools
 ```
 
 # Memory Allocators
-You can use `LD_PRELOAD` to use different memory allocators with libchannels.
+You can use `LD_PRELOAD` to use different memory allocators with octane.
 
 TCMalloc
 ```

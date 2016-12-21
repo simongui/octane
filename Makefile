@@ -54,8 +54,8 @@ osx: deps
 
 xcode: deps
 	if [ ! -d "build" ]; then mkdir -p build; fi
-	if [ ! -d "build/libchannels.xcodeproj" ]; then cd build;cmake -DCMAKE_OSX_ARCHITECTURES=x86_64 -G Xcode ..; fi
-	cd build;xcodebuild -project libchannels.xcodeproj/
+	if [ ! -d "build/octane.xcodeproj" ]; then cd build;cmake -DCMAKE_OSX_ARCHITECTURES=x86_64 -G Xcode ..; fi
+	cd build;xcodebuild -project octane.xcodeproj/
 
 linux: $(lockless_path)
 	rm -rf build

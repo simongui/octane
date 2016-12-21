@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <uv.h>
 #include <stdlib.h>
-#include <channels.h>
+#include <octane.h>
 #include "common.h"
 #include "connection.h"
 #include "responders/static_responder.h"

@@ -18,24 +18,24 @@ extern "C" {
 
 #ifdef _WIN32
     /* Windows - set up dll import/export decorators. */
-#ifdef BUILDING_LIBCHANNELS_SHARED
+#ifdef BUILDING_OCTANE_SHARED
     /* Building shared library. */
-#define LIBCHANNELS_EXTERN __declspec(dllexport)
+#define OCTANE_EXTERN __declspec(dllexport)
 #else
-#ifdef USING_LIBCHANNELS_SHARED
+#ifdef USING_OCTANE_SHARED
     /* Using shared library. */
-#define LIBCHANNELS_EXTERN __declspec(dllimport)
+#define OCTANE_EXTERN __declspec(dllimport)
 #else
     /* Building static library. */
-#define LIBCHANNELS_EXTERN /* nothing */
+#define OCTANE_EXTERN /* nothing */
 #endif
 #endif
     
-#define LIBCHANNELS_CALLING_CONVENTION __cdecl
+#define OCTANE_CALLING_CONVENTION __cdecl
 #else
     /* Building static library. */
-#define LIBCHANNELS_EXTERN /* nothing */
-#define LIBCHANNELS_CALLING_CONVENTION /* nothing */
+#define OCTANE_EXTERN /* nothing */
+#define OCTANE_CALLING_CONVENTION /* nothing */
 #endif
 
 /*
@@ -99,4 +99,4 @@ typedef enum dispatch_type
  * uv_alloc_cb
  *      Callback that gets called when libuv requires memory to be allocated.
  */
-LIBCHANNELS_EXTERN int uv_multi_listen(const char* address, int port, bool tcp_nodelay, unsigned int threads, enum dispatch_type dispatcher, uv_loop_t* loop, int connection_backlog, uv_connection_cb cb);
+OCTANE_EXTERN int uv_multi_listen(const char* address, int port, bool tcp_nodelay, unsigned int threads, enum dispatch_type dispatcher, uv_loop_t* loop, int connection_backlog, uv_connection_cb cb);

@@ -8,7 +8,7 @@ void create_response_nobuffer(write_batch* batch) {
     batch->buffers[batch->number_of_used_buffers].len = 17;
     batch->number_of_used_buffers++;
 
-    batch->buffers[batch->number_of_used_buffers].base = "Server: libchannels/master\r\n";
+    batch->buffers[batch->number_of_used_buffers].base = "Server: octane\r\n";
     batch->buffers[batch->number_of_used_buffers].len = 28;
     batch->number_of_used_buffers++;
 

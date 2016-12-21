@@ -3,9 +3,9 @@ include(CMakeToolsHelpers OPTIONAL)
 include("common.cmake")
 
 # ----------------------------------------
-# libchannels
+# octane
 # ----------------------------------------
-project(libchannels C)
+project(octane C)
 set(CMAKE_BUILD_TYPE RelWithDebInfo)
 
 add_definitions(-std=gnu99)
@@ -21,25 +21,25 @@ if (UNIX)
     add_definitions(-DUNIX)
 endif (UNIX)
 
-file(GLOB_RECURSE LIBCHANNELS_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/channels/*.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/channels/*.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/channels/*.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/channels/*.cpp)
+file(GLOB_RECURSE OCTANE_SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/octane/*.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/octane/*.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/octane/*.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/octane/*.cpp)
 
-list(SORT LIBCHANNELS_SOURCES)
-create_source_group("Source Files" "${CMAKE_CURRENT_SOURCE_DIR}/src" ${LIBCHANNELS_SOURCES})
+list(SORT OCTANE_SOURCES)
+create_source_group("Source Files" "${CMAKE_CURRENT_SOURCE_DIR}/src" ${OCTANE_SOURCES})
 include_directories(${CMAKE_SOURCE_DIR}/lib/libuv/include)
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
 find_package(Threads REQUIRED)
 
-add_library(libchannels STATIC ${LIBCHANNELS_SOURCES})
+add_library(octane STATIC ${OCTANE_SOURCES})
 
-target_link_libraries (libchannels ${CMAKE_THREAD_LIBS_INIT}
+target_link_libraries (octane ${CMAKE_THREAD_LIBS_INIT}
     ${CMAKE_SOURCE_DIR}/lib/libuv/.libs/libuv.a)
 
-GET_PROPERTY(libchannels_location TARGET libchannels PROPERTY LOCATION)
+GET_PROPERTY(octane_location TARGET octane PROPERTY LOCATION)
 
 # ----------------------------------------
 # Hello world sample
@@ -63,11 +63,11 @@ find_package(Threads REQUIRED)
 add_executable (hello_world
     ${HELLOWORLD_SOURCES})
 
-add_dependencies(hello_world libchannels)
+add_dependencies(hello_world octane)
 
 # Libraries to link in reverse order because that's what ld requires.
 target_link_libraries (hello_world
-    ${libchannels_location}
+    ${octane_location}
     ${CMAKE_SOURCE_DIR}/lib/libuv/.libs/libuv.a
     ${CMAKE_THREAD_LIBS_INIT})
 

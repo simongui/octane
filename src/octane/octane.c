@@ -3,7 +3,7 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <uv.h>
-#include "channels.h"
+#include "octane.h"
 #include "listener.h"
 
 #ifdef PLATFORM_POSIX

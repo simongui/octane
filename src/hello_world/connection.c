@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include <channels.h>
+#include <octane.h>
 #include "connection.h"
 
 connection* create_connection()
