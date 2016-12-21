@@ -136,7 +136,6 @@ void stream_on_read(uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf) {
         conn->bytes_remaining = conn->bytes_remaining + (nread % conn->request_length);
 
         stream_on_read_func(conn, requests, stream, nread, buf);
-        free(buf->base);
     }
     else if (nread == UV_ENOBUFS) {
         handle_buffer_exceeded_error(conn);
@@ -154,4 +153,5 @@ void stream_on_read(uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf) {
          * respond with a blanket 500 error if we can */
         handle_internal_error(conn);
     }
+    free(buf->base);
 }

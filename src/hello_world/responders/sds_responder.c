@@ -5,8 +5,14 @@
 #include "../write_batch.h"
 
 void create_response_sds(write_batch* batch) {
-    sds response_buffer = sdsnew("HTTP/1.1 200 OK\r\nServer: libchannels/master\r\nContent-Type: text/plain\r\nContent-Length: 15\r\n");
-    //response_buffer = sdscat(response_buffer, "HTTP/1.1 200 OK\r\nServer: libchannels/master\r\nContent-Type: text/plain\r\nContent-Length: 15\r\n");
+    //sds response_buffer = sdsnew("HTTP/1.1 200 OK\r\nServer: libchannels/master\r\nContent-Type: text/plain\r\nContent-Length: 15\r\n");
+    //response_buffer = sdscat(response_buffer, "Date: Mon Dec 12 00:00:00 2016\r\n");
+    //response_buffer = sdscat(response_buffer, "\r\nHello, World!\n\n");
+
+    sds response_buffer = sdsnew("HTTP/1.1 200 OK\r\n");
+    response_buffer = sdscat(response_buffer, "Server: libchannels\r\n");
+    response_buffer = sdscat(response_buffer, "Content-Type: text/plain\r\n");
+    response_buffer = sdscat(response_buffer, "Content-Length: 15\r\n");
     response_buffer = sdscat(response_buffer, "Date: Mon Dec 12 00:00:00 2016\r\n");
     response_buffer = sdscat(response_buffer, "\r\nHello, World!\n\n");
 
@@ -32,6 +38,10 @@ void stream_on_read_sds(connection* conn, size_t requests, uv_stream_t* stream, 
 }
 
 void after_write_sds(uv_write_t* req, int status) {
+    write_batch* batch = get_write_batch(req);
+    for (int i=0; i<batch->number_of_used_buffers; i++) {
+        sds buffer = batch->buffers[i].base;
+        sdsfree(buffer);
+    }
     free(req);
 }
-
