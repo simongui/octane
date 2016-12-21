@@ -34,7 +34,7 @@ int main(int args, char **argsv) {
     uv_timer_init(loop, &timer);
     uv_timer_start(&timer, timer_callback, 0, 500);
 
-    uv_multi_listen("0.0.0.0", 8000, false, 20, DISPATCH_TYPE_REUSEPORT, loop, 128, stream_on_connect);
+    uv_multi_listen("0.0.0.0", 8000, false, 40, DISPATCH_TYPE_REUSEPORT, loop, 128, stream_on_connect);
 }
 
 void send_error_response(connection* conn, request_state state) {
