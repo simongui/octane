@@ -1,6 +1,6 @@
-<img src="logo.png"/>
+<img src="logo.png" width="50%"/>
 
-# Octane Overview
+# Overview
 Octane is a high performance library that extends libuv to scale and use all the available CPU cores on a system for TCP traffic by using multiple event loops across multiple threads.
 
 # Optimizations
