@@ -2,6 +2,7 @@
 #include <uv.h>
 #include <stdlib.h>
 #include <octane.h>
+#include <time.h>
 #include "common.h"
 #include "connection.h"
 #include "responders/static_responder.h"
@@ -16,16 +17,22 @@ typedef struct {
 void stream_on_connect(uv_stream_t* stream, int status);
 void stream_on_alloc(uv_handle_t* client, size_t suggested_size, uv_buf_t* buf);
 void stream_on_read(uv_stream_t* tcp, ssize_t nread, const uv_buf_t* buf);
+void timer_callback(uv_timer_t* timer);
 
 void (*stream_on_read_func)(connection* conn, size_t requests, uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf);
 
+uv_timer_t timer;
+
 int main(int args, char **argsv) {
-    stream_on_read_func = &stream_on_read_static;
-    //stream_on_read_func = &stream_on_read_sds;
+    //stream_on_read_func = &stream_on_read_static;
+    stream_on_read_func = &stream_on_read_sds;
     //stream_on_read_func = &stream_on_read_nobuffer;
 
     uv_async_t* service_handle = 0;
     uv_loop_t* loop = uv_default_loop();
+
+    uv_timer_init(loop, &timer);
+    uv_timer_start(&timer, timer_callback, 0, 500);
 
     uv_multi_listen("0.0.0.0", 8000, false, 20, DISPATCH_TYPE_REUSEPORT, loop, 128, stream_on_connect);
 }
@@ -154,4 +161,11 @@ void stream_on_read(uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf) {
         handle_internal_error(conn);
     }
     free(buf->base);
+}
+
+void timer_callback(uv_timer_t* timer) {
+    time_t curtime;
+    time(&curtime);
+    char* time = ctime(&curtime);
+    current_time = time;
 }

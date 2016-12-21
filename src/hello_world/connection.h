@@ -21,3 +21,5 @@ typedef enum {
 
 connection* create_connection();
 void free_connection(connection* conn);
+
+char* current_time;

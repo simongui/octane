@@ -13,7 +13,7 @@ void create_response_sds(write_batch* batch) {
     response_buffer = sdscat(response_buffer, "Server: octane\r\n");
     response_buffer = sdscat(response_buffer, "Content-Type: text/plain\r\n");
     response_buffer = sdscat(response_buffer, "Content-Length: 15\r\n");
-    response_buffer = sdscat(response_buffer, "Date: Mon Dec 12 00:00:00 2016\r\n");
+    response_buffer = sdscatprintf(response_buffer, "Date: %s", current_time);
     response_buffer = sdscat(response_buffer, "\r\nHello, World!\n\n");
 
     batch->buffers[batch->number_of_used_buffers].base = response_buffer;
