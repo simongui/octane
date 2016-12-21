@@ -1,7 +1,7 @@
 /*-------------------------------------------------------------------------
  *
  * Overview
- *      Primary include file for libchannel. Include this file to gain
+ *      Primary include file for octane. Include this file to gain
  *      access to the libuv extended functionality.
  *
  *-------------------------------------------------------------------------
@@ -54,7 +54,7 @@ extern "C" {
  *
  * DISPATCH_TYPE_REUSEPORT will distribute TCP connections using the
  * SP_REUSEPORT functionality in the Linux 3.9 kernel that load balanes
- * TCP connections between sockets. libchannel creates a socket per event
+ * TCP connections between sockets. octane creates a socket per event
  * loop (per thread).
  *
  */
