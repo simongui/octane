@@ -1,8 +1,6 @@
 <img src="logo.png"/>
 
 # Octane Overview
-libuv is a cross-platform  asynchronous I/O library that only uses a single event loop thread for TCP traffic.
-
 Octane is a high performance library that extends libuv to scale and use all the available CPU cores on a system for TCP traffic by using multiple event loops across multiple threads.
 
 # Optimizations
