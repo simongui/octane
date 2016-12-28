@@ -8,8 +8,8 @@ typedef struct
     enum {OPEN, CLOSING, CLOSED} state;
     void* data;
     bool keep_alive;
-    int bytes_remaining;
-    int request_length;
+    size_t bytes_remaining;
+    size_t request_length;
 } connection;
 
 typedef enum {
