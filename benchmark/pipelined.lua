@@ -9,7 +9,7 @@ request = function()
     local r = {}
 
     for i=1,pipeline_length do
-        r[i] = wrk.format("GET", "/")
+        r[i] = wrk.format("GET", wrk.path)
     end
 
     req = table.concat(r)

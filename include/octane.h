@@ -64,6 +64,13 @@ typedef enum dispatch_type
     DISPATCH_TYPE_REUSEPORT,
 };
 
+typedef enum connection_state
+{
+    CONNECTION_OPEN,
+    CONNECTION_CLOSING,
+    CONNECTION_CLOSED
+};
+
 /*
  * connection is a struct representing a TCP client connection to the server.
  */
@@ -100,3 +107,7 @@ typedef enum dispatch_type
  *      Callback that gets called when libuv requires memory to be allocated.
  */
 OCTANE_EXTERN int uv_multi_listen(const char* address, int port, bool tcp_nodelay, unsigned int threads, enum dispatch_type dispatcher, uv_loop_t* loop, int connection_backlog, uv_connection_cb cb);
+
+#ifdef __cplusplus
+}
+#endif

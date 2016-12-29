@@ -3,6 +3,7 @@ libuv_path = ${projectpath}/lib/libuv
 wrk_path = ${projectpath}/lib/wrk
 wrk2_path = ${projectpath}/lib/wrk2
 sds_path = ${projectpath}/lib/sds
+rapidjson_path = ${projectpath}/lib/rapidjson
 lockless_path = ${projectpath}/lib/lockless_allocator
 tcmalloc_path = ${projectpath}/lib/tcmalloc
 
@@ -79,6 +80,13 @@ $(wrk2_path)/wrk:
 
 $(sds_path):
 	if [ ! -d "$(sds_path)" ]; then git clone https://github.com/antirez/sds.git $(sds_path); fi
+	cd $(rapidjson_path)/build;cmake ..
+
+$(rapidjson_path):
+	if [ ! -d "$(rapidjson_path)" ]; then git clone https://github.com/miloyip/rapidjson.git $(rapidjson_path); fi
+	cd $(rapidjson_path);mkdir build
+	cd $(rapidjson_path)/build;cmake ..
+	cd $(rapidjson_path)/build;make
 
 $(tcmalloc_path):
 	if [ ! -d "$(tcmalloc_path)" ]; then git clone https://github.com/gperftools/gperftools.git $(tcmalloc_path); fi
@@ -93,4 +101,4 @@ $(lockless_path):
 
 tools: $(wrk_path)/wrk $(wrk2_path)/wrk
 
-deps: $(libuv_path)/.libs/libuv.a $(sds_path) $(tcmalloc_path)
+deps: $(libuv_path)/.libs/libuv.a $(sds_path) $(rapidjson_path) $(tcmalloc_path)

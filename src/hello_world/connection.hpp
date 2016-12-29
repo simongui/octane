@@ -1,11 +1,12 @@
 #pragma once
 
 #include <stdbool.h>
+#include "octane.h"
 
 typedef struct
 {
     uv_tcp_t stream;
-    enum {OPEN, CLOSING, CLOSED} state;
+    enum connection_state state;
     void* data;
     bool keep_alive;
     size_t bytes_remaining;
@@ -21,5 +22,3 @@ typedef enum {
 
 connection* create_connection();
 void free_connection(connection* conn);
-
-char* current_time;
