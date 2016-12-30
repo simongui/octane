@@ -19,8 +19,8 @@ void create_plaintext_response_sds(write_batch* batch) {
     response_buffer = sdscat(response_buffer, "Server: octane\r\n");
     response_buffer = sdscat(response_buffer, "Content-Type: text/plain\r\n");
     response_buffer = sdscat(response_buffer, "Content-Length: 14\r\n");
-    response_buffer = sdscatprintf(response_buffer, "Date: %s", current_time);
-    response_buffer = sdscat(response_buffer, "\r\nHello, World!\n");
+    response_buffer = sdscatprintf(response_buffer, "Date: %s\r\n", current_time);
+    response_buffer = sdscat(response_buffer, "Hello, World!\n");
 
     batch->buffers[batch->number_of_used_buffers].base = response_buffer;
     batch->buffers[batch->number_of_used_buffers].len = sdslen(response_buffer);

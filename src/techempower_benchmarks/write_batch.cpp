@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include "write_batch.hpp"
-#include "common.hpp"
+#include "common.h"
 
 uv_write_t* create_write_with_batch(size_t number_of_total_buffers) {
     /*

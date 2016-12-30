@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <octane.h>
 #include <time.h>
-#include "common.hpp"
+#include "common.h"
 #include "connection.hpp"
 #include "responders/static_responder.hpp"
 #include "responders/sds_responder.hpp"

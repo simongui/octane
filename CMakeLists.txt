@@ -44,33 +44,33 @@ target_link_libraries (octane ${CMAKE_THREAD_LIBS_INIT}
 GET_PROPERTY(octane_location TARGET octane PROPERTY LOCATION)
 
 # ----------------------------------------
-# Hello world sample
+# Techempower benchmarks
 # ----------------------------------------
-file(GLOB_RECURSE HELLOWORLD_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/hello_world/*.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/hello_world/*.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/hello_world/*.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/hello_world/*.cpp)
+file(GLOB_RECURSE TECHEMPOWER_BENCHMARKS_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/techempower_benchmarks/*.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/techempower_benchmarks/*.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/techempower_benchmarks/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/techempower_benchmarks/*.cpp)
 
-list(SORT HELLOWORLD_SOURCES)
-create_source_group("Source Files" "${CMAKE_CURRENT_SOURCE_DIR}/src" ${HELLOWORLD_SOURCES})
+list(SORT TECHEMPOWER_BENCHMARKS_SOURCES)
+create_source_group("Source Files" "${CMAKE_CURRENT_SOURCE_DIR}/src" ${TECHEMPOWER_BENCHMARKS_SOURCES})
 include_directories(${CMAKE_SOURCE_DIR}/lib/libuv/include)
 include_directories(${CMAKE_SOURCE_DIR}/lib/rapidjson/include)
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
 find_package(Threads REQUIRED)
 
-add_executable (hello_world
-    ${HELLOWORLD_SOURCES})
+add_executable (techempower_benchmarks
+    ${TECHEMPOWER_BENCHMARKS_SOURCES})
 
-add_dependencies(hello_world octane)
+add_dependencies(techempower_benchmarks octane)
 
 # Libraries to link in reverse order because that's what ld requires.
-target_link_libraries (hello_world
+target_link_libraries (techempower_benchmarks
     ${octane_location}
     ${CMAKE_SOURCE_DIR}/lib/libuv/.libs/libuv.a
     ${CMAKE_THREAD_LIBS_INIT})
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    target_link_libraries (hello_world rt)
+    target_link_libraries (techempower_benchmarks rt)
 endif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
