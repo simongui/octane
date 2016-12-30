@@ -2,7 +2,6 @@ projectpath = ${CURDIR}
 libuv_path = ${projectpath}/lib/libuv
 wrk_path = ${projectpath}/lib/wrk
 wrk2_path = ${projectpath}/lib/wrk2
-sds_path = ${projectpath}/lib/sds
 rapidjson_path = ${projectpath}/lib/rapidjson
 lockless_path = ${projectpath}/lib/lockless_allocator
 tcmalloc_path = ${projectpath}/lib/tcmalloc
@@ -77,10 +76,6 @@ $(wrk_path)/wrk:
 $(wrk2_path)/wrk:
 	if [ ! -d "$(wrk2_path)" ]; then git clone https://github.com/giltene/wrk2.git $(wrk2_path); fi
 	cd $(wrk2_path);make
-
-$(sds_path):
-	if [ ! -d "$(sds_path)" ]; then git clone https://github.com/antirez/sds.git $(sds_path); fi
-	cd $(rapidjson_path)/build;cmake ..
 
 $(rapidjson_path):
 	if [ ! -d "$(rapidjson_path)" ]; then git clone https://github.com/miloyip/rapidjson.git $(rapidjson_path); fi
