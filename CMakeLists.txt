@@ -2,15 +2,15 @@ cmake_minimum_required(VERSION 2.6)
 include(CMakeToolsHelpers OPTIONAL)
 include("common.cmake")
 
-set (CMAKE_CXX_STANDARD 14)
-
 # ----------------------------------------
 # octane
 # ----------------------------------------
 project(octane C CXX)
-set(CMAKE_BUILD_TYPE RelWithDebInfo)
 
-#add_definitions(-std=gnu99)
+set(CMAKE_BUILD_TYPE RelWithDebInfo)
+set (CMAKE_CXX_STANDARD 14)
+
+add_definitions(-std=gnu99)
 add_definitions(-msse4.1)
 add_definitions(-pedantic)
 add_definitions(-O3)
