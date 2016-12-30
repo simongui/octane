@@ -53,13 +53,29 @@ void stream_on_read_sds(connection* conn, size_t requests, uv_stream_t* stream, 
     uv_write_t *write_req = create_write_with_batch(requests);
     write_batch* batch = (write_batch*)write_req->data;
 
-    if (buf->base[5] == 'p') {
-        // Plaintext route.
+    if (conn->path == ROUTE_UNKNOWN) {
+        int path_index = 5;
+        if (buf->base[0] == '\r') {
+            path_index++;
+        }
+        if (buf->base[1] == '\n') {
+            path_index++;
+        }
+
+        if (buf->base[path_index] == 'p') {
+            // Plaintext route.
+            conn->path = ROUTE_PLAINTEXT;
+        } else if (buf->base[path_index] == 'j') {
+            // JSON route.
+            conn->path = ROUTE_JSON;
+        }
+    }
+
+    if (conn->path == ROUTE_PLAINTEXT) {
         for (int i=0; i<requests; i++) {
             create_plaintext_response_sds(batch);
         }
-    } else if (buf->base[5] == 'j') {
-        // JSON route.
+    } else if (conn->path == ROUTE_JSON) {
         for (int i=0; i<requests; i++) {
             create_json_response_sds(batch);
         }

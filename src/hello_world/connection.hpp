@@ -3,10 +3,17 @@
 #include <stdbool.h>
 #include "octane.h"
 
+typedef enum {
+    ROUTE_UNKNOWN,
+    ROUTE_PLAINTEXT,
+    ROUTE_JSON
+} route_path;
+
 typedef struct
 {
     uv_tcp_t stream;
     enum connection_state state;
+    route_path path;
     void* data;
     bool keep_alive;
     size_t bytes_remaining;
