@@ -84,9 +84,6 @@ $(sds_path):
 
 $(rapidjson_path):
 	if [ ! -d "$(rapidjson_path)" ]; then git clone https://github.com/miloyip/rapidjson.git $(rapidjson_path); fi
-	cd $(rapidjson_path);mkdir build
-	cd $(rapidjson_path)/build;cmake ..
-	cd $(rapidjson_path)/build;make
 
 $(tcmalloc_path):
 	if [ ! -d "$(tcmalloc_path)" ]; then git clone https://github.com/gperftools/gperftools.git $(tcmalloc_path); fi
