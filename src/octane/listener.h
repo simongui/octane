@@ -29,6 +29,7 @@ struct listener
     int port;
     bool tcp_nodelay;
     int listen_backlog;
+    void* data;
     uv_connection_cb connection_cb;
     uv_alloc_cb alloc_cb;
 };

@@ -25,16 +25,6 @@ char* current_time;
 uv_timer_t timer;
 
 int main(int argc, char *argv[]) {
-    http_listener* listener = new_http_listener();
-    begin_listening(listener, "0.0.0.0", 8000, FALSE, 40, 128, NULL);
-    printf("Listening...\n");
-}
-
-void on_new_connection(http_connection* connection, uv_stream_t* server, int status) {
-    printf("NEW CONNECTION\n");
-}
-
-int main2(int argc, char *argv[]) {
     //stream_on_read_func = &stream_on_read_static;
     stream_on_read_func = &stream_on_read_sds;
     //stream_on_read_func = &stream_on_read_nobuffer;
@@ -45,11 +35,10 @@ int main2(int argc, char *argv[]) {
     uv_timer_init(loop, &timer);
     uv_timer_start(&timer, timer_callback, 0, 500);
 
-    uv_multi_listen("0.0.0.0", 8000, false, 40, DISPATCH_TYPE_REUSEPORT, loop, 128,
-                    NULL, stream_on_connect);
+    uv_multi_listen("0.0.0.0", 8000, false, 40, DISPATCH_TYPE_REUSEPORT, loop, 128, stream_on_connect);
 }
 
-void send_error_response(connection* conn, http_request_state state) {
+void send_error_response(connection* conn, request_state state) {
 
 }
 
@@ -71,7 +60,7 @@ void stream_close_connection(connection* conn) {
     }
 }
 
-void handle_request_error(connection* conn, http_request_state state) {
+void handle_request_error(connection* conn, request_state state) {
     uv_stream_t* stream = (uv_stream_t*)&conn->stream;
 
     if (conn->state == CONNECTION_OPEN) {

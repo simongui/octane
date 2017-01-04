@@ -71,17 +71,41 @@ typedef enum connection_state
     CONNECTION_CLOSED
 };
 
+typedef enum http_request_state {
+    OK,
+    SIZE_EXCEEDED,
+    BAD_REQUEST,
+    INTERNAL_ERROR
+} http_request_state;
+
 /*
- * connection is a struct representing a TCP client connection to the server.
+ * http_connection
  */
-//typedef struct
-//{
-//    uv_tcp_t stream;
-//    enum {OPEN, CLOSING, CLOSED} state;
-//    void* data;
-//    int bytes_remaining;
-//    int request_length;
-//} connection;
+typedef struct http_connection {
+    void* listener;
+    enum connection_state state;
+    bool keep_alive;
+    uv_tcp_t stream;
+    void* data;
+} http_connection;
+
+OCTANE_EXTERN typedef void (*oct_connection_cb)(http_connection* connection, uv_stream_t* server, int status);
+OCTANE_EXTERN typedef void (*oct_alloc_cb)(http_connection* connection, uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf);
+OCTANE_EXTERN typedef void (*oct_read_cb)(http_connection* connection, uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf);
+
+/*
+ * http_listener
+ */
+typedef struct http_listener {
+    oct_connection_cb connection_cb;
+    oct_read_cb read_cb;
+} http_listener;
+
+OCTANE_EXTERN http_listener* new_http_listener();
+OCTANE_EXTERN http_listener* get_listener_from_connection(http_connection* connection);
+OCTANE_EXTERN void begin_listening(http_listener* listener, const char* address, int port,
+                                   bool tcp_no_delay, unsigned int threads, unsigned int backlog,
+                                   oct_connection_cb connection_cb);
 
 /*
  * uv_multi_listen is similar to uv_listen except it allows creating event
@@ -106,7 +130,10 @@ typedef enum connection_state
  * uv_alloc_cb
  *      Callback that gets called when libuv requires memory to be allocated.
  */
-OCTANE_EXTERN int uv_multi_listen(const char* address, int port, bool tcp_nodelay, unsigned int threads, enum dispatch_type dispatcher, uv_loop_t* loop, int connection_backlog, uv_connection_cb cb);
+OCTANE_EXTERN int uv_multi_listen(const char* address, int port, bool tcp_nodelay,
+                                  unsigned int threads, enum dispatch_type dispatcher,
+                                  uv_loop_t* loop, int connection_backlog, void* data,
+                                  uv_connection_cb cb);
 
 #ifdef __cplusplus
 }

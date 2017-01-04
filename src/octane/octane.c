@@ -15,7 +15,9 @@ uv_async_t* listener_async_handles;
 
 void reuseport_thread_start(void *arg);
 
-int uv_multi_listen(const char* address, int port, bool tcp_nodelay, unsigned int threads, enum dispatch_type dispatcher, uv_loop_t* loop, int backlog, uv_connection_cb cb) {
+int uv_multi_listen(const char* address, int port, bool tcp_nodelay, unsigned int threads,
+                    enum dispatch_type dispatcher, uv_loop_t* loop, int backlog,
+                    void* data, uv_connection_cb cb) {
     #ifdef UNIX
         signal(SIGPIPE, SIG_IGN);
     #endif // UNIX
@@ -26,6 +28,8 @@ int uv_multi_listen(const char* address, int port, bool tcp_nodelay, unsigned in
     uv_async_t* service_handle = 0;
     service_handle = malloc(sizeof(uv_async_t));
     uv_async_init(loop, service_handle, NULL);
+
+    service_handle->data = data;
 
     if (dispatcher == DISPATCH_TYPE_IPC) {
 
@@ -42,6 +46,7 @@ int uv_multi_listen(const char* address, int port, bool tcp_nodelay, unsigned in
             listener->tcp_nodelay = tcp_nodelay;
             listener->listen_backlog = backlog;
             listener->connection_cb = cb;
+            listener->data = data;
             int rc = uv_thread_create(&listener->thread_id, reuseport_thread_start, listener);
         }
 
@@ -66,8 +71,8 @@ void reuseport_thread_start(void *arg)
     loop = uv_loop_new();
     listener_event_loops[listener->index] = *loop;
 
-    // initialize_http_request_cache();
-    // http_request_cache_configure_listener(loop, &listener_async_handles[ctx->index]);
+    http_listener* listener2 = (http_listener*)listener->data;
+    printf("%p\n", listener2);
 
     struct sockaddr_in addr;
     uv_tcp_t server;

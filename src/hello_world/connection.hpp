@@ -20,5 +20,12 @@ typedef struct
     size_t request_length;
 } connection;
 
+typedef enum {
+    OK,
+    SIZE_EXCEEDED,
+    BAD_REQUEST,
+    INTERNAL_ERROR
+} request_state;
+
 connection* create_connection();
 void free_connection(connection* conn);
