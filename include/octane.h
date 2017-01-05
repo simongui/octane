@@ -15,6 +15,7 @@ extern "C" {
 
 #include <stdbool.h>
 #include <uv.h>
+#include "sds.h"
 
 #ifdef _WIN32
     /* Windows - set up dll import/export decorators. */
@@ -78,6 +79,23 @@ typedef enum http_request_state {
     INTERNAL_ERROR
 } http_request_state;
 
+typedef struct http_header {
+    sds key;
+    sds value;
+} http_header;
+
+typedef struct http_request {
+    sds method;
+    sds path;
+    int version;
+    http_header headers[100];
+}http_request;
+
+http_request* new_http_request();
+
+OCTANE_EXTERN typedef void (*oct_request_cb)(http_request* request);
+
+
 /*
  * http_connection
  */
@@ -98,14 +116,17 @@ OCTANE_EXTERN typedef void (*oct_read_cb)(http_connection* connection, uv_stream
  */
 typedef struct http_listener {
     oct_connection_cb connection_cb;
+    oct_alloc_cb alloc_cb;
     oct_read_cb read_cb;
+    oct_request_cb request_cb;
 } http_listener;
 
 OCTANE_EXTERN http_listener* new_http_listener();
 OCTANE_EXTERN http_listener* get_listener_from_connection(http_connection* connection);
 OCTANE_EXTERN void begin_listening(http_listener* listener, const char* address, int port,
                                    bool tcp_no_delay, unsigned int threads, unsigned int backlog,
-                                   oct_connection_cb connection_cb);
+                                   oct_connection_cb connection_cb, oct_alloc_cb alloc_cb, oct_read_cb read_cb,
+                                   oct_request_cb request_cb);
 
 /*
  * uv_multi_listen is similar to uv_listen except it allows creating event

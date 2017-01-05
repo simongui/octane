@@ -4,7 +4,7 @@
 #include <sys/socket.h>
 #include <uv.h>
 #include "octane.h"
-#include "listener.h"
+#include "socket_listener.h"
 
 #ifdef PLATFORM_POSIX
 #include <signal.h>
@@ -32,14 +32,14 @@ int uv_multi_listen(const char* address, int port, bool tcp_nodelay, unsigned in
     service_handle->data = data;
 
     if (dispatcher == DISPATCH_TYPE_IPC) {
-
+         //TODO: Implement IPC based dispatcher.
     } else if (dispatcher == DISPATCH_TYPE_REUSEPORT) {
-        struct listener* listeners;
+        struct socket_listener* listeners;
         listeners = calloc(threads, sizeof(listeners[0]));
 
         for (int i = 0; i < threads; i++)
         {
-            struct listener* listener = listeners + i;
+            struct socket_listener* listener = listeners + i;
             listener->index = i;
             listener->address = address;
             listener->port = port;
@@ -63,22 +63,19 @@ void reuseport_thread_start(void *arg)
 #endif // UNIX
 
     int rc;
-    struct listener* listener;
+    struct socket_listener* s_listener;
     uv_loop_t* loop;
     uv_tcp_t svr;
 
-    listener = arg;
+    s_listener = arg;
     loop = uv_loop_new();
-    listener_event_loops[listener->index] = *loop;
-
-    http_listener* listener2 = (http_listener*)listener->data;
-    printf("%p\n", listener2);
+    listener_event_loops[s_listener->index] = *loop;
 
     struct sockaddr_in addr;
     uv_tcp_t server;
 
     rc = uv_tcp_init_ex(loop, &server, AF_INET);
-    uv_ip4_addr(listener->address, listener->port, &addr);
+    uv_ip4_addr(s_listener->address, s_listener->port, &addr);
 
     uv_os_fd_t fd;
     int on = 1;
@@ -89,8 +86,10 @@ void reuseport_thread_start(void *arg)
         printf("%d\n", errno);
     }
 
+    server.data = s_listener->data;
+
     uv_tcp_bind(&server, (const struct sockaddr*)&addr, 0);
-    int r = uv_listen((uv_stream_t*) &server, listener->listen_backlog, listener->connection_cb);
+    int r = uv_listen((uv_stream_t*) &server, s_listener->listen_backlog, s_listener->connection_cb);
 
     rc = uv_run(loop, UV_RUN_DEFAULT);
     uv_loop_delete(loop);

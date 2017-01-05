@@ -19,6 +19,10 @@ void stream_on_alloc(uv_handle_t* client, size_t suggested_size, uv_buf_t* buf);
 void stream_on_read(uv_stream_t* tcp, ssize_t nread, const uv_buf_t* buf);
 void timer_callback(uv_timer_t* timer);
 
+void on_new_connection(http_connection* connection, uv_stream_t* server, int status);
+void on_alloc(http_connection* connection, uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf);
+void on_read(http_connection* connection, uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf);
+void on_request(http_request* request);
 void (*stream_on_read_func)(connection* conn, size_t requests, uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf);
 
 char* current_time;
@@ -26,12 +30,32 @@ uv_timer_t timer;
 
 int main(int argc, char *argv[]) {
     http_listener* listener = new_http_listener();
-    begin_listening(listener, "0.0.0.0", 8000, FALSE, 40, 128, NULL);
+    begin_listening(listener, "0.0.0.0", 8000, FALSE, 40, 128, NULL, NULL, NULL, on_request);
     printf("Listening...\n");
 }
 
 void on_new_connection(http_connection* connection, uv_stream_t* server, int status) {
     printf("NEW CONNECTION\n");
+}
+
+void on_alloc(http_connection* connection, uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf) {
+    printf("ALLOCATING!\n");
+}
+
+void on_read(http_connection* connection, uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf) {
+    printf("READING!\n");
+}
+
+void on_request(http_request* request) {
+    //printf("method is %s\n", request->method);
+    //printf("path is %s\n", request->path);
+    //printf("HTTP version is 1.%d\n", request->version);
+    //printf("headers:\n");
+    //for (int i = 0; i != num_headers; ++i) {
+    //    printf("%.*s: %.*s\n", (int) headers[i].name_len, headers[i].name,
+    //           (int) headers[i].value_len, headers[i].value);
+    //}
+
 }
 
 int main2(int argc, char *argv[]) {

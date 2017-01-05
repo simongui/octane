@@ -17,8 +17,7 @@ union stream_handle
 
 typedef unsigned char handle_storage_t[sizeof(union stream_handle)];
 
-struct listener
-{
+struct socket_listener {
     int index;
     handle_storage_t server_handle;
     unsigned int num_connects;
@@ -32,7 +31,7 @@ struct listener
     void* data;
     uv_connection_cb connection_cb;
     uv_alloc_cb alloc_cb;
-};
+}socket_listener;
 
 struct ipc_client_ctx
 {
