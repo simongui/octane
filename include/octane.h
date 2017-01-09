@@ -72,6 +72,24 @@ typedef enum connection_state
     CONNECTION_CLOSED
 };
 
+/*
+ * http_connection
+ */
+typedef struct http_connection {
+    void* listener;
+    enum connection_state state;
+    bool keep_alive;
+    uv_tcp_t stream;
+    void* data;
+} http_connection;
+
+OCTANE_EXTERN typedef void (*oct_connection_cb)(http_connection* connection, uv_stream_t* server, int status);
+OCTANE_EXTERN typedef void (*oct_alloc_cb)(http_connection* connection, uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf);
+OCTANE_EXTERN typedef void (*oct_read_cb)(http_connection* connection, uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf);
+
+/*
+ * http_request
+ */
 typedef enum http_request_state {
     OK,
     SIZE_EXCEEDED,
@@ -93,28 +111,13 @@ typedef struct http_request {
 
 http_request* new_http_request();
 
-OCTANE_EXTERN typedef void (*oct_request_cb)(http_request* request);
-
-
-/*
- * http_connection
- */
-typedef struct http_connection {
-    void* listener;
-    enum connection_state state;
-    bool keep_alive;
-    uv_tcp_t stream;
-    void* data;
-} http_connection;
-
-OCTANE_EXTERN typedef void (*oct_connection_cb)(http_connection* connection, uv_stream_t* server, int status);
-OCTANE_EXTERN typedef void (*oct_alloc_cb)(http_connection* connection, uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf);
-OCTANE_EXTERN typedef void (*oct_read_cb)(http_connection* connection, uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf);
+OCTANE_EXTERN typedef void (*oct_request_cb)(http_connection* connection, http_request* requests, int number_of_requests);
 
 /*
  * http_listener
  */
 typedef struct http_listener {
+    uv_loop_t* loop;
     oct_connection_cb connection_cb;
     oct_alloc_cb alloc_cb;
     oct_read_cb read_cb;

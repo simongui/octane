@@ -22,7 +22,7 @@ void timer_callback(uv_timer_t* timer);
 void on_new_connection(http_connection* connection, uv_stream_t* server, int status);
 void on_alloc(http_connection* connection, uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf);
 void on_read(http_connection* connection, uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf);
-void on_request(http_request* request);
+void on_request(http_connection* connection, http_request* requests, int number_of_requests);
 void (*stream_on_read_func)(connection* conn, size_t requests, uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf);
 
 char* current_time;
@@ -30,32 +30,55 @@ uv_timer_t timer;
 
 int main(int argc, char *argv[]) {
     http_listener* listener = new_http_listener();
+    uv_timer_init(listener->loop, &timer);
+    uv_timer_start(&timer, timer_callback, 0, 500);
+
     begin_listening(listener, "0.0.0.0", 8000, FALSE, 40, 128, NULL, NULL, NULL, on_request);
+
     printf("Listening...\n");
 }
 
 void on_new_connection(http_connection* connection, uv_stream_t* server, int status) {
-    printf("NEW CONNECTION\n");
+    //printf("NEW CONNECTION\n");
 }
 
 void on_alloc(http_connection* connection, uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf) {
-    printf("ALLOCATING!\n");
+    //printf("ALLOCATING!\n");
 }
 
 void on_read(http_connection* connection, uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf) {
-    printf("READING!\n");
+    //printf("READING!\n");
 }
 
-void on_request(http_request* request) {
-    //printf("method is %s\n", request->method);
-    //printf("path is %s\n", request->path);
-    //printf("HTTP version is 1.%d\n", request->version);
+void on_request(http_connection* connection, http_request* requests, int number_of_requests) {
+    //printf("method is %s\n", requests[0].method);
+    //printf("path is %s\n", requests[0].path);
+    //printf("HTTP version is 1.%d\n", requests[0].version);
     //printf("headers:\n");
     //for (int i = 0; i != num_headers; ++i) {
     //    printf("%.*s: %.*s\n", (int) headers[i].name_len, headers[i].name,
     //           (int) headers[i].value_len, headers[i].value);
     //}
 
+    uv_write_t* write_req = create_write_with_batch(number_of_requests);
+    write_batch* batch = get_write_batch(write_req);
+
+    for (int i=0; i<number_of_requests; i++) {
+        create_plaintext_response_sds(batch);
+    }
+    if (uv_is_writable((uv_stream_t*)&connection->stream)) {
+        // TODO: Use the return values from uv_write()
+        int rc = uv_write(write_req, (uv_stream_t*)&connection->stream, batch->buffers, batch->number_of_used_buffers, after_write_sds);
+    } else {
+        // TODO: Handle closing the stream.
+    }
+
+    //free(requests);
+    //for (int i=0; i<number_of_requests; i++) {
+    //    free(requests[i].method);
+    //    free(requests[i].path);
+    //    free(requests[i].headers);
+    //}
 }
 
 int main2(int argc, char *argv[]) {

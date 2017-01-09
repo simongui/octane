@@ -5,7 +5,7 @@
 #include "http_connection.h"
 #include "picohttpparser.h"
 
-void parse_http_stream(http_listener* listener, uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf);
+void parse_http_stream(http_connection* connection, uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf);
 
 http_listener* new_http_listener() {
 
@@ -35,6 +35,7 @@ http_listener* new_http_listener() {
     if(!(listener = (http_listener*)malloc(size))){
         memory_error("Unable to allocate buffer of size %d", size);
     }
+    listener->loop = uv_default_loop();
     return listener;
 }
 
@@ -51,9 +52,7 @@ void begin_listening(http_listener* listener, const char* address, int port, boo
     listener->read_cb = read_cb;
     listener->request_cb = request_cb;
 
-    uv_loop_t* loop = uv_default_loop();
-
-    uv_multi_listen("0.0.0.0", 8000, false, 40, DISPATCH_TYPE_REUSEPORT, loop, backlog, listener,
+    uv_multi_listen("0.0.0.0", 8000, false, 40, DISPATCH_TYPE_REUSEPORT, listener->loop, backlog, listener,
                     uv_stream_on_connect);
 }
 
@@ -101,12 +100,17 @@ void uv_stream_on_read(uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf) 
     if (listener->read_cb != NULL) {
         listener->read_cb(connection, stream, nread, buf);
     } else {
-        parse_http_stream(listener, stream, nread, buf);
+        parse_http_stream(connection, stream, nread, buf);
     }
 }
 
-void parse_http_stream(http_listener* listener, uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf) {
+void parse_http_stream(http_connection* connection, uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf) {
+    http_listener* listener = get_listener_from_connection(connection);
+
     if (nread > 0) {
+        http_request* requests = malloc(sizeof(http_request*) * 256);
+        int number_of_requests = 0;
+
         size_t prevbuflen = 0;
 
         while (prevbuflen < nread) {
@@ -121,8 +125,9 @@ void parse_http_stream(http_listener* listener, uv_stream_t* stream, ssize_t nre
 
             // Parse the request.
             num_headers = sizeof(headers) / sizeof(headers[0]);
-            pret = phr_parse_request(&buf->base[prevbuflen], nread - prevbuflen, &method, &method_len, &path, &path_len,
-                                     &minor_version, headers, &num_headers, 0);
+            pret = phr_parse_request(&buf->base[prevbuflen], nread - prevbuflen, &method,
+                                     &method_len, &path, &path_len, &minor_version, headers,
+                                     &num_headers, 0);
 
             //printf("request is %d bytes long\n", pret);
             //printf("method is %.*s\n", (int) method_len, method);
@@ -134,15 +139,16 @@ void parse_http_stream(http_listener* listener, uv_stream_t* stream, ssize_t nre
             //           (int) headers[i].value_len, headers[i].value);
             //}
 
-            prevbuflen += pret;
+            if (pret > 0) {
+                // Successfully parsed the HTTP request.
+                prevbuflen += pret;
 
-            http_request* request = new_http_request();
-            request->method = sdscatlen(request->method, method, method_len);
-            request->path = sdscatlen(request->path, path, path_len);
-            request->version = minor_version;
-
-            if (listener != NULL && listener->request_cb != NULL) {
-                listener->request_cb(request);
+                http_request* request = new_http_request();
+                request->method = sdscatlen(request->method, method, method_len);
+                request->path = sdscatlen(request->path, path, path_len);
+                request->version = minor_version;
+                requests[number_of_requests] = *request;
+                number_of_requests++;
             }
 
             //if (pret > 0)
@@ -153,6 +159,12 @@ void parse_http_stream(http_listener* listener, uv_stream_t* stream, ssize_t nre
             //assert(pret == -2);
             //if (buflen == sizeof(buf))
             //    return RequestIsTooLongError;
+        }
+
+        if (number_of_requests > 0) {
+            if (listener != NULL && listener->request_cb != NULL) {
+                listener->request_cb(connection, requests, number_of_requests);
+            }
         }
     }
 }
