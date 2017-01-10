@@ -22,7 +22,7 @@ void timer_callback(uv_timer_t* timer);
 void on_new_connection(http_connection* connection, uv_stream_t* server, int status);
 void on_alloc(http_connection* connection, uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf);
 void on_read(http_connection* connection, uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf);
-void on_request(http_connection* connection, http_request* requests, int number_of_requests);
+void on_request(http_connection* connection, http_request** requests, int number_of_requests);
 void (*stream_on_read_func)(connection* conn, size_t requests, uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf);
 
 char* current_time;
@@ -50,7 +50,7 @@ void on_read(http_connection* connection, uv_stream_t* stream, ssize_t nread, co
     //printf("READING!\n");
 }
 
-void on_request(http_connection* connection, http_request* requests, int number_of_requests) {
+void on_request(http_connection* connection, http_request** requests, int number_of_requests) {
     //printf("method is %s\n", requests[0].method);
     //printf("path is %s\n", requests[0].path);
     //printf("HTTP version is 1.%d\n", requests[0].version);
@@ -73,12 +73,7 @@ void on_request(http_connection* connection, http_request* requests, int number_
         // TODO: Handle closing the stream.
     }
 
-    //free(requests);
-    //for (int i=0; i<number_of_requests; i++) {
-    //    free(requests[i].method);
-    //    free(requests[i].path);
-    //    free(requests[i].headers);
-    //}
+    free_http_requests(requests, number_of_requests);
 }
 
 int main2(int argc, char *argv[]) {

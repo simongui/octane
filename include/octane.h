@@ -109,9 +109,10 @@ typedef struct http_request {
     http_header headers[100];
 }http_request;
 
-http_request* new_http_request();
-
-OCTANE_EXTERN typedef void (*oct_request_cb)(http_connection* connection, http_request* requests, int number_of_requests);
+OCTANE_EXTERN http_request* new_http_request();
+OCTANE_EXTERN void free_http_request(http_request* request);
+OCTANE_EXTERN void free_http_requests(http_request** requests, int number_of_requests);
+OCTANE_EXTERN typedef void (*oct_request_cb)(http_connection* connection, http_request** requests, int number_of_requests);
 
 /*
  * http_listener

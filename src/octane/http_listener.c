@@ -102,13 +102,14 @@ void uv_stream_on_read(uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf) 
     } else {
         parse_http_stream(connection, stream, nread, buf);
     }
+    free(buf->base);
 }
 
 void parse_http_stream(http_connection* connection, uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf) {
     http_listener* listener = get_listener_from_connection(connection);
 
     if (nread > 0) {
-        http_request* requests = malloc(sizeof(http_request*) * 256);
+        http_request** requests = malloc(sizeof(http_request*) * 256);
         int number_of_requests = 0;
 
         size_t prevbuflen = 0;
@@ -147,7 +148,7 @@ void parse_http_stream(http_connection* connection, uv_stream_t* stream, ssize_t
                 request->method = sdscatlen(request->method, method, method_len);
                 request->path = sdscatlen(request->path, path, path_len);
                 request->version = minor_version;
-                requests[number_of_requests] = *request;
+                requests[number_of_requests] = request;
                 number_of_requests++;
             }
 
