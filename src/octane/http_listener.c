@@ -85,11 +85,20 @@ void uv_stream_on_alloc(uv_handle_t* client, size_t suggested_size, uv_buf_t* bu
     }
     if (listener->alloc_cb == NULL || buf->len == 0) {
         // No allocation function defined or no allocation happened so we default to allocating the size requested.
-        char* buffer;
-        if(!(buffer = (char*)malloc(suggested_size))){
-            memory_error("Unable to allocate buffer of size %d", suggested_size);
+        if (connection->partial_request_location > 0) {
+            char* buffer = buf->base;
+            buffer = buf->base + connection->partial_request_location;
+            buf->len = buf->len - connection->partial_request_location;
+
+            printf("%.*s\n", buf->len, buf->base);
+        } else {
+            char *buffer;
+            if (!(buffer = (char *) malloc(suggested_size))) {
+                memory_error("Unable to allocate buffer of size %d", suggested_size);
+            }
+            *buf = uv_buf_init(buffer, suggested_size);
         }
-        *buf = uv_buf_init(buffer, suggested_size);
+
     }
 }
 
@@ -150,6 +159,9 @@ void parse_http_stream(http_connection* connection, uv_stream_t* stream, ssize_t
                 request->version = minor_version;
                 requests[number_of_requests] = request;
                 number_of_requests++;
+            } else if (pret == -2) {
+                // Request is incomplete.
+                connection->partial_request_location = nread;
             }
 
             //if (pret > 0)

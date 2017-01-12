@@ -1,8 +1,8 @@
 #include <stdlib.h>
-#include "write_batch.hpp"
-#include "common.h"
+#include "octane.h"
+#include "../techempower_benchmarks/common.h"
 
-uv_write_t* create_write_with_batch(size_t number_of_total_buffers) {
+write_batch* create_write_batch(size_t number_of_total_buffers) {
     /*
      * Allocate the 3 structures and array of buffers in one malloc call
      * to reduce malloc() contention across CPU cores.
@@ -13,16 +13,21 @@ uv_write_t* create_write_with_batch(size_t number_of_total_buffers) {
         memory_error("Unable to allocate buffer of size %d", bytes);
     }
 
-    write_batch* batch = get_write_batch(write_req);
+    write_batch* batch = get_write_batch_from_write_req(write_req);
     batch->buffers = (uv_buf_t*)(batch + 1);
     batch->number_of_used_buffers = 0;
     batch->number_of_total_buffers = number_of_total_buffers;
+    batch->write_req = write_req;
     write_req->data = batch;
 
-    return write_req;
+    return batch;
 }
 
-write_batch* get_write_batch(uv_write_t* write_req) {
+uv_write_t* get_write_req_from_write_batch(write_batch* batch) {
+    uv_write_t* write_req = batch->write_req;
+    return write_req;
+}
+write_batch* get_write_batch_from_write_req(uv_write_t* write_req) {
     write_batch* batch = (write_batch*)(write_req + 1);
     return batch;
 }

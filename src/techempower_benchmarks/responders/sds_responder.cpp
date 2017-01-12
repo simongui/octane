@@ -4,7 +4,6 @@
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
 #include "../connection.hpp"
-#include "../write_batch.hpp"
 
 using namespace rapidjson;
 
@@ -50,8 +49,7 @@ void create_json_response_sds(write_batch* batch) {
 }
 
 void stream_on_read_sds(connection* conn, size_t requests, uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf) {
-    uv_write_t *write_req = create_write_with_batch(requests);
-    write_batch* batch = (write_batch*)write_req->data;
+    write_batch* batch = create_write_batch(requests);
 
     if (conn->path == ROUTE_UNKNOWN) {
         int path_index = 5;
@@ -83,14 +81,15 @@ void stream_on_read_sds(connection* conn, size_t requests, uv_stream_t* stream, 
 
     if (uv_is_writable(stream)) {
         // TODO: Use the return values from uv_write()
-        int rc = uv_write(write_req, stream, batch->buffers, batch->number_of_used_buffers, after_write_sds);
+        //int rc = uv_write(write_req, stream, batch->buffers, batch->number_of_used_buffers, after_write_sds);
+
     } else {
         // TODO: Handle closing the stream.
     }
 }
 
 void after_write_sds(uv_write_t* req, int status) {
-    write_batch* batch = get_write_batch(req);
+    write_batch* batch = get_write_batch_from_write_req(req);
     for (int i=0; i<batch->number_of_used_buffers; i++) {
         sds buffer = batch->buffers[i].base;
         sdsfree(buffer);

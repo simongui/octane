@@ -2,7 +2,6 @@
 
 #include <uv.h>
 #include "../connection.hpp"
-#include "../write_batch.hpp"
 
 void create_plaintext_response_sds(write_batch* batch);
 void create_json_response_sds(write_batch* batch);

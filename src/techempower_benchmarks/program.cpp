@@ -1,13 +1,12 @@
 #include <stdio.h>
 #include <uv.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <octane.h>
 #include <time.h>
 #include "common.h"
 #include "connection.hpp"
-#include "responders/static_responder.hpp"
 #include "responders/sds_responder.hpp"
-#include "responders/nobuffer_responder.hpp"
 
 typedef struct {
   uv_write_t req;
@@ -60,15 +59,14 @@ void on_request(http_connection* connection, http_request** requests, int number
     //           (int) headers[i].value_len, headers[i].value);
     //}
 
-    uv_write_t* write_req = create_write_with_batch(number_of_requests);
-    write_batch* batch = get_write_batch(write_req);
+    write_batch* batch = create_write_batch(number_of_requests);
 
     for (int i=0; i<number_of_requests; i++) {
         create_plaintext_response_sds(batch);
     }
-    if (uv_is_writable((uv_stream_t*)&connection->stream)) {
+    if (http_connection_is_writable(connection)) {
         // TODO: Use the return values from uv_write()
-        int rc = uv_write(write_req, (uv_stream_t*)&connection->stream, batch->buffers, batch->number_of_used_buffers, after_write_sds);
+        int rc = http_connection_write(connection, batch);
     } else {
         // TODO: Handle closing the stream.
     }

@@ -65,6 +65,18 @@ typedef enum dispatch_type
     DISPATCH_TYPE_REUSEPORT,
 };
 
+typedef struct write_batch {
+    uv_write_t* write_req;
+    uv_buf_t* buffers;
+    size_t number_of_used_buffers;
+    size_t number_of_total_buffers;
+}write_batch;
+
+//OCTANE_EXTERN uv_write_t* create_write_with_batch(size_t number_of_total_buffers);
+OCTANE_EXTERN write_batch* create_write_batch(size_t number_of_total_buffers);
+OCTANE_EXTERN write_batch* get_write_batch_from_write_req(uv_write_t* write_req);
+OCTANE_EXTERN uv_write_t* get_write_req_from_write_batch(write_batch* batch);
+
 typedef enum connection_state
 {
     CONNECTION_OPEN,
@@ -75,14 +87,9 @@ typedef enum connection_state
 /*
  * http_connection
  */
-typedef struct http_connection {
-    void* listener;
-    enum connection_state state;
-    bool keep_alive;
-    uv_tcp_t stream;
-    void* data;
-} http_connection;
-
+typedef struct http_connection http_connection;
+OCTANE_EXTERN int http_connection_is_writable(http_connection* connection);
+OCTANE_EXTERN int http_connection_write(http_connection* connection, write_batch* batch);
 OCTANE_EXTERN typedef void (*oct_connection_cb)(http_connection* connection, uv_stream_t* server, int status);
 OCTANE_EXTERN typedef void (*oct_alloc_cb)(http_connection* connection, uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf);
 OCTANE_EXTERN typedef void (*oct_read_cb)(http_connection* connection, uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf);
