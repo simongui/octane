@@ -10,7 +10,10 @@ http_connection* new_http_connection()
     if(!(connection = (http_connection*)malloc(size))){
         memory_error("Unable to allocate buffer of size %d", size);
     }
-    connection->partial_request_location = 0;
+    //connection->buffer = malloc(sizeof(uv_buf_t));
+    connection->current_buffer_position = 0;
+    connection->current_parsed_position = 0;
+    //connection->current_parser_status = 0;
     return connection;
 }
 

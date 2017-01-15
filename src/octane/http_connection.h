@@ -10,7 +10,9 @@ typedef struct http_connection {
     void* listener;
     enum connection_state state;
     bool keep_alive;
-    ssize_t partial_request_location;
+    uv_buf_t buffer;
+    size_t current_parsed_position;
+    size_t current_buffer_position;
 } http_connection;
 
 http_connection* new_http_connection();

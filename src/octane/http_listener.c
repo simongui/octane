@@ -85,20 +85,23 @@ void uv_stream_on_alloc(uv_handle_t* client, size_t suggested_size, uv_buf_t* bu
     }
     if (listener->alloc_cb == NULL || buf->len == 0) {
         // No allocation function defined or no allocation happened so we default to allocating the size requested.
-        if (connection->partial_request_location > 0) {
-            char* buffer = buf->base;
-            buffer = buf->base + connection->partial_request_location;
-            buf->len = buf->len - connection->partial_request_location;
-
-            printf("%.*s\n", buf->len, buf->base);
+        if (connection->current_buffer_position > 0) {
+            //printf("%d\n", connection->current_buffer_position);
+            //printf("TWO: %.*s\n", connection->buffer.len, connection->buffer.base);
+            //printf("BASE2: %p\n", connection->buffer.base);
+            //if (connection->buffer.base == '\0') {
+            //    printf("HIT 2!!!!\n");
+            //}
+            buf->base = connection->buffer.base + connection->current_buffer_position;
+            buf->len = connection->buffer.len - connection->current_buffer_position;
         } else {
             char *buffer;
             if (!(buffer = (char *) malloc(suggested_size))) {
                 memory_error("Unable to allocate buffer of size %d", suggested_size);
             }
-            *buf = uv_buf_init(buffer, suggested_size);
+            connection->buffer = uv_buf_init(buffer, suggested_size);
+            *buf = connection->buffer;
         }
-
     }
 }
 
@@ -111,19 +114,27 @@ void uv_stream_on_read(uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf) 
     } else {
         parse_http_stream(connection, stream, nread, buf);
     }
-    free(buf->base);
+    //free(buf->base);
 }
 
 void parse_http_stream(http_connection* connection, uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf) {
     http_listener* listener = get_listener_from_connection(connection);
 
+    //printf("BASE: %p\n", connection->buffer.base);
+    //printf("THREE: %.*s\n", buf->len, buf->base);
     if (nread > 0) {
+        connection->current_buffer_position += nread;
+
+        //printf("ONE: %.*s\n", nread, buf->base);
         http_request** requests = malloc(sizeof(http_request*) * 256);
         int number_of_requests = 0;
+        //int pret;
 
-        size_t prevbuflen = 0;
+        //printf("ONE:%.*s\n", 32,connection->buffer.base + connection->current_parsed_position);
+        printf("ONE:%.*s\n", 64, buf->base);
 
-        while (prevbuflen < nread) {
+
+        while (connection->current_parsed_position < nread) {
             char* method;
             char* path;
             int pret;
@@ -135,9 +146,9 @@ void parse_http_stream(http_connection* connection, uv_stream_t* stream, ssize_t
 
             // Parse the request.
             num_headers = sizeof(headers) / sizeof(headers[0]);
-            pret = phr_parse_request(&buf->base[prevbuflen], nread - prevbuflen, &method,
-                                     &method_len, &path, &path_len, &minor_version, headers,
-                                     &num_headers, 0);
+            pret = phr_parse_request(&buf->base[connection->current_parsed_position],
+                                     nread - connection->current_parsed_position, &method, &method_len, &path,
+                                     &path_len, &minor_version, headers, &num_headers, 0);
 
             //printf("request is %d bytes long\n", pret);
             //printf("method is %.*s\n", (int) method_len, method);
@@ -151,7 +162,7 @@ void parse_http_stream(http_connection* connection, uv_stream_t* stream, ssize_t
 
             if (pret > 0) {
                 // Successfully parsed the HTTP request.
-                prevbuflen += pret;
+                connection->current_parsed_position += pret;
 
                 http_request* request = new_http_request();
                 request->method = sdscatlen(request->method, method, method_len);
@@ -161,7 +172,8 @@ void parse_http_stream(http_connection* connection, uv_stream_t* stream, ssize_t
                 number_of_requests++;
             } else if (pret == -2) {
                 // Request is incomplete.
-                connection->partial_request_location = nread;
+                printf("INCOMPLETE ");
+                break;
             }
 
             //if (pret > 0)
@@ -174,6 +186,14 @@ void parse_http_stream(http_connection* connection, uv_stream_t* stream, ssize_t
             //    return RequestIsTooLongError;
         }
 
+        printf("reqs: %d buflen:%d nread: %d cbp: %d cpp: %d\n\n",
+               number_of_requests, buf->len, nread, connection->current_buffer_position, connection->current_parsed_position);
+
+        if (connection->current_buffer_position == nread) {
+            connection->current_buffer_position = 0;
+        } else {
+            //connection->current_buffer_position += nread;
+        }
         if (number_of_requests > 0) {
             if (listener != NULL && listener->request_cb != NULL) {
                 listener->request_cb(connection, requests, number_of_requests);

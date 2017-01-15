@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
     uv_timer_init(listener->loop, &timer);
     uv_timer_start(&timer, timer_callback, 0, 500);
 
-    begin_listening(listener, "0.0.0.0", 8000, FALSE, 40, 128, NULL, NULL, NULL, on_request);
+    begin_listening(listener, "0.0.0.0", 8000, false, 40, 128, NULL, NULL, NULL, on_request);
 
     printf("Listening...\n");
 }
@@ -71,7 +71,7 @@ void on_request(http_connection* connection, http_request** requests, int number
         // TODO: Handle closing the stream.
     }
 
-    free_http_requests(requests, number_of_requests);
+    //free_http_requests(requests, number_of_requests);
 }
 
 int main2(int argc, char *argv[]) {
