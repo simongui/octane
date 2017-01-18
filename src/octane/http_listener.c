@@ -36,6 +36,10 @@ http_listener* new_http_listener() {
         memory_error("Unable to allocate buffer of size %d", size);
     }
     listener->loop = uv_default_loop();
+    listener->connection_cb = NULL;
+    listener->alloc_cb = NULL;
+    listener->read_cb = NULL;
+    listener->request_cb = NULL;
     return listener;
 }
 
@@ -92,8 +96,8 @@ void uv_stream_on_alloc(uv_handle_t* client, size_t suggested_size, uv_buf_t* bu
             //if (connection->buffer.base == '\0') {
             //    printf("HIT 2!!!!\n");
             //}
-            buf->base = connection->buffer.base + connection->current_buffer_position;
-            buf->len = connection->buffer.len - connection->current_buffer_position;
+            buf->base = connection->buffer.base + connection->current_parsed_position;
+            buf->len = connection->buffer.len - connection->current_parsed_position;
         } else {
             char *buffer;
             if (!(buffer = (char *) malloc(suggested_size))) {

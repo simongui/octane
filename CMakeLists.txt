@@ -3,7 +3,7 @@ include(CMakeToolsHelpers OPTIONAL)
 include("common.cmake")
 
 # ----------------------------------------
-# octane
+# Octane
 # ----------------------------------------
 project(octane C CXX)
 
@@ -42,6 +42,37 @@ target_link_libraries (octane ${CMAKE_THREAD_LIBS_INIT}
     ${CMAKE_SOURCE_DIR}/lib/libuv/.libs/libuv.a)
 
 GET_PROPERTY(octane_location TARGET octane PROPERTY LOCATION)
+
+# ----------------------------------------
+# Tests
+# ----------------------------------------
+file(GLOB_RECURSE TESTS_SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/tests/*.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/tests/*.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/tests/*.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/tests/*.cpp)
+
+list(SORT TESTS_SOURCES)
+create_source_group("Source Files" "${CMAKE_CURRENT_SOURCE_DIR}/src" ${TESTS_SOURCES})
+include_directories(${CMAKE_SOURCE_DIR}/lib/libuv/include)
+include_directories(${CMAKE_SOURCE_DIR}/include)
+
+find_package(Threads REQUIRED)
+
+add_executable (tests
+        ${TESTS_SOURCES})
+
+add_dependencies(tests octane)
+
+# Libraries to link in reverse order because that's what ld requires.
+target_link_libraries (tests
+        ${octane_location}
+        ${CMAKE_SOURCE_DIR}/lib/libuv/.libs/libuv.a
+        ${CMAKE_THREAD_LIBS_INIT})
+
+if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    target_link_libraries (tests rt)
+endif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 # ----------------------------------------
 # Techempower benchmarks

@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include "octane.h"
-#include "../techempower_benchmarks/common.h"
+#include "common.h"
 
 write_batch* create_write_batch(size_t number_of_total_buffers) {
     /*
