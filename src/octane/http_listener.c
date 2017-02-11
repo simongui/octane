@@ -150,7 +150,11 @@ void parse_http_stream(http_connection* connection, uv_stream_t* stream, ssize_t
 
             // Parse the request.
             num_headers = sizeof(headers) / sizeof(headers[0]);
-            pret = phr_parse_request(&buf->base[connection->current_parsed_position],
+            //pret = phr_parse_request(&buf->base[connection->current_parsed_position],
+            //                         nread - connection->current_parsed_position, &method, &method_len, &path,
+            //                         &path_len, &minor_version, headers, &num_headers, 0);
+
+            pret = phr_parse_request(&connection->buffer.base[connection->current_parsed_position],
                                      nread - connection->current_parsed_position, &method, &method_len, &path,
                                      &path_len, &minor_version, headers, &num_headers, 0);
 
@@ -163,6 +167,8 @@ void parse_http_stream(http_connection* connection, uv_stream_t* stream, ssize_t
             //    printf("%.*s: %.*s\n", (int) headers[i].name_len, headers[i].name,
             //           (int) headers[i].value_len, headers[i].value);
             //}
+
+            printf("%d\n", pret);
 
             if (pret > 0) {
                 // Successfully parsed the HTTP request.
@@ -190,7 +196,7 @@ void parse_http_stream(http_connection* connection, uv_stream_t* stream, ssize_t
             //    return RequestIsTooLongError;
         }
 
-        printf("reqs: %d buflen:%d nread: %d cbp: %d cpp: %d\n\n",
+        printf("reqs: %d buflen: %d nread: %d cbp: %d cpp: %d\n\n",
                number_of_requests, buf->len, nread, connection->current_buffer_position, connection->current_parsed_position);
 
         if (connection->current_buffer_position == nread) {

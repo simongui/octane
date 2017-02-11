@@ -125,14 +125,25 @@ SCENARIO("http_listener receives http requests", "[http_listener]") {
 
                     // Request new buffer. Octane should detect a partial request
                     // and re-use previous buffer from the last parsed offset.
+                    //uv_buf_t* buffer3 = (uv_buf_t*)malloc(sizeof(uv_buf_t));
+                    //uv_stream_on_alloc(client, suggested_size, buffer3);
+                    //
+                    //buffer3->base = " HTTP/1.1\r\n" \
+                    //        "Host: localhost:8000\r\n" \
+                    //        "User-Agent: curl/7.49.1\r\n" \
+                    //        "Accept: */*\r\n" \
+                    //        "\r\n";
+
                     uv_buf_t* buffer3 = (uv_buf_t*)malloc(sizeof(uv_buf_t));
                     uv_stream_on_alloc(client, suggested_size, buffer3);
 
-                    buffer3->base = " HTTP/1.1\r\n" \
-                            "Host: localhost:8000\r\n" \
-                            "User-Agent: curl/7.49.1\r\n" \
-                            "Accept: */*\r\n" \
-                            "\r\n";
+                    const char* req2 = " HTTP/1.1\r\n" \
+                        "Host: localhost:8000\r\n" \
+                        "User-Agent: curl/7.49.1\r\n" \
+                        "Accept: */*\r\n" \
+                        "\r\n";
+
+                    memcpy(buffer3->base, req2, strlen(req2));
 
                     THEN("the completed request is parsed") {
                         listener->request_cb = [](
