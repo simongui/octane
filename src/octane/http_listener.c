@@ -3,6 +3,7 @@
 #include "http_listener.h"
 #include "common.h"
 #include "http_connection.h"
+#include "buffer.h"
 #include "picohttpparser.h"
 
 void parse_http_stream(http_connection* connection, uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf);
@@ -88,24 +89,36 @@ void uv_stream_on_alloc(uv_handle_t* client, size_t suggested_size, uv_buf_t* bu
         listener->alloc_cb(listener, client, suggested_size, buf);
     }
     if (listener->alloc_cb == NULL || buf->len == 0) {
-        // No allocation function defined or no allocation happened so we default to allocating the size requested.
-        if (connection->current_buffer_position > 0) {
-            //printf("%d\n", connection->current_buffer_position);
-            //printf("TWO: %.*s\n", connection->buffer.len, connection->buffer.base);
-            //printf("BASE2: %p\n", connection->buffer.base);
-            //if (connection->buffer.base == '\0') {
-            //    printf("HIT 2!!!!\n");
-            //}
-            buf->base = connection->buffer.base + connection->current_parsed_position;
-            buf->len = connection->buffer.len - connection->current_parsed_position;
+        //// No allocation function defined or no allocation happened so we default to allocating the size requested.
+        //if (connection->current_buffer_position > 0) {
+        //    //printf("%d\n", connection->current_buffer_position);
+        //    //printf("TWO: %.*s\n", connection->buffer.len, connection->buffer.base);
+        //    //printf("BASE2: %p\n", connection->buffer.base);
+        //    //if (connection->buffer.base == '\0') {
+        //    //    printf("HIT 2!!!!\n");
+        //    //}
+        //    buf->base = connection->buffer.base + connection->current_parsed_position;
+        //    buf->len = connection->buffer.len - connection->current_parsed_position;
+        //} else {
+        //    char *buffer;
+        //    if (!(buffer = (char *) malloc(suggested_size))) {
+        //        memory_error("Unable to allocate buffer of size %d", suggested_size);
+        //    }
+        //    connection->buffer = uv_buf_init(buffer, suggested_size);
+        //    *buf = connection->buffer;
+        //}
+
+        bool success = buffer_alloc(connection->buffer, suggested_size);
+        buffer_chunk chunk;
+        chunk.size = 0;
+        chunk.buffer = NULL;
+
+        if (success) {
+            buffer_chunk_init(connection->buffer, &chunk);
         } else {
-            char *buffer;
-            if (!(buffer = (char *) malloc(suggested_size))) {
-                memory_error("Unable to allocate buffer of size %d", suggested_size);
-            }
-            connection->buffer = uv_buf_init(buffer, suggested_size);
-            *buf = connection->buffer;
+            /* TODO out of memory event - we should hook up an application callback to this */
         }
+        *buf = uv_buf_init(chunk.buffer, chunk.size);
     }
 }
 
@@ -122,34 +135,22 @@ void uv_stream_on_read(uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf) 
 }
 
 void parse_http_stream(http_connection* connection, uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf) {
+    int pret = 0;
     http_listener* listener = get_listener_from_connection(connection);
 
-    //printf("BASE: %p\n", connection->buffer.base);
-    //printf("THREE: %.*s\n", buf->len, buf->base);
     if (nread > 0) {
-        connection->current_buffer_position += nread;
-
-        printf("ONE %p ----------------------------------------\n%.*s\n----------------------------------------\n",
-               &connection->buffer.base[connection->current_parsed_position],
-               nread,
-               buf->base);
+        /* Need to tell the buffer that we care about the next nread bytes */
+        buffer_consume(connection->buffer, nread);
 
         http_request** requests = malloc(sizeof(http_request*) * 256);
         int number_of_requests = 0;
-        //int pret;
 
-        //printf("ONE:%.*s\n", nread - connection->current_parsed_position, buf->base);
+        int counter = 0;
 
-
-        while (connection->current_parsed_position < nread) {
-            printf("TWO %p ----------------------------------------\n%.*s\n----------------------------------------\n",
-                   connection->buffer.base + connection->current_parsed_position,
-                   nread + connection->current_buffer_position - connection->current_parsed_position,
-                   &connection->buffer.base[connection->current_parsed_position]);
-
+        do {
+            counter++;
             char* method;
             char* path;
-            int pret;
             int minor_version;
             struct phr_header headers[100];
             size_t method_len;
@@ -158,12 +159,9 @@ void parse_http_stream(http_connection* connection, uv_stream_t* stream, ssize_t
 
             // Parse the request.
             num_headers = sizeof(headers) / sizeof(headers[0]);
-            //pret = phr_parse_request(&buf->base[connection->current_parsed_position],
-            //                         nread - connection->current_parsed_position, &method, &method_len, &path,
-            //                         &path_len, &minor_version, headers, &num_headers, 0);
 
-            pret = phr_parse_request(&connection->buffer.base[connection->current_parsed_position],
-                                     nread + connection->current_parsed_position, &method, &method_len, &path,
+            pret = phr_parse_request((const char*)buf->base + connection->current_parsed_position,
+                                     buf->len, &method, &method_len, &path,
                                      &path_len, &minor_version, headers, &num_headers, 0);
 
             //printf("request is %d bytes long\n", pret);
@@ -176,7 +174,8 @@ void parse_http_stream(http_connection* connection, uv_stream_t* stream, ssize_t
             //           (int) headers[i].value_len, headers[i].value);
             //}
 
-            printf("%d %d\n", pret, nread + connection->current_parsed_position);
+            //printf("%d\tSTATE: pret: %d\tnread: %d\tbuflen: %d\tcpp: %d\n",
+            // counter, pret, nread, buf->len, connection->current_parsed_position);
 
             if (pret > 0) {
                 // Successfully parsed the HTTP request.
@@ -190,7 +189,9 @@ void parse_http_stream(http_connection* connection, uv_stream_t* stream, ssize_t
                 number_of_requests++;
             } else if (pret == -1) {
                 // Request is incomplete.
-                printf("INCOMPLETE ");
+                //printf("INCOMPLETE ");
+                //printf("---------\n%.*s\n", 16, (const char*)buf->base + connection->current_parsed_position);
+                //buffer_print(connection->buffer);
                 break;
             } else if (pret == -2) {
                 break;
@@ -204,17 +205,19 @@ void parse_http_stream(http_connection* connection, uv_stream_t* stream, ssize_t
             //assert(pret == -2);
             //if (buflen == sizeof(buf))
             //    return RequestIsTooLongError;
-        }
+        } while (pret > 0);
 
-        printf("reqs: %d buflen: %d nread: %d cbp: %d cpp: %d\n\n",
-               number_of_requests,
-               buf->len,
-               nread,
-               connection->current_buffer_position,
-               connection->current_parsed_position);
+        //printf("reqs: %d buflen: %d nread: %d cbp: %d cpp: %d\n\n",
+        //       number_of_requests,
+        //       buf->len,
+        //       nread,
+        //       connection->current_buffer_position,
+        //       connection->current_parsed_position);
 
-        if (connection->current_buffer_position == nread) {
-            connection->current_buffer_position = 0;
+        if (connection->current_parsed_position == nread) {
+            connection->current_parsed_position = 0;
+            buffer_mark(connection->buffer);
+            buffer_sweep(connection->buffer);
         } else {
             //connection->current_buffer_position += nread;
         }

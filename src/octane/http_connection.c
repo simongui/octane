@@ -2,6 +2,7 @@
 #include <uv.h>
 #include "http_connection.h"
 #include "common.h"
+#include "buffer.h"
 
 http_connection* new_http_connection()
 {
@@ -10,10 +11,9 @@ http_connection* new_http_connection()
     if(!(connection = (http_connection*)malloc(size))){
         memory_error("Unable to allocate buffer of size %d", size);
     }
-    //connection->buffer = malloc(sizeof(uv_buf_t));
     connection->current_buffer_position = 0;
     connection->current_parsed_position = 0;
-    //connection->current_parser_status = 0;
+    connection->buffer = buffer_init(1048576); // Defaults to 1MB.
     return connection;
 }
 
