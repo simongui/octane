@@ -129,16 +129,24 @@ void parse_http_stream(http_connection* connection, uv_stream_t* stream, ssize_t
     if (nread > 0) {
         connection->current_buffer_position += nread;
 
-        //printf("ONE: %.*s\n", nread, buf->base);
+        printf("ONE %p ----------------------------------------\n%.*s\n----------------------------------------\n",
+               &connection->buffer.base[connection->current_parsed_position],
+               nread,
+               buf->base);
+
         http_request** requests = malloc(sizeof(http_request*) * 256);
         int number_of_requests = 0;
         //int pret;
 
-        //printf("ONE:%.*s\n", 32,connection->buffer.base + connection->current_parsed_position);
-        printf("ONE:%.*s\n", 64, buf->base);
+        //printf("ONE:%.*s\n", nread - connection->current_parsed_position, buf->base);
 
 
         while (connection->current_parsed_position < nread) {
+            printf("TWO %p ----------------------------------------\n%.*s\n----------------------------------------\n",
+                   connection->buffer.base + connection->current_parsed_position,
+                   nread + connection->current_buffer_position - connection->current_parsed_position,
+                   &connection->buffer.base[connection->current_parsed_position]);
+
             char* method;
             char* path;
             int pret;
@@ -155,7 +163,7 @@ void parse_http_stream(http_connection* connection, uv_stream_t* stream, ssize_t
             //                         &path_len, &minor_version, headers, &num_headers, 0);
 
             pret = phr_parse_request(&connection->buffer.base[connection->current_parsed_position],
-                                     nread - connection->current_parsed_position, &method, &method_len, &path,
+                                     nread + connection->current_parsed_position, &method, &method_len, &path,
                                      &path_len, &minor_version, headers, &num_headers, 0);
 
             //printf("request is %d bytes long\n", pret);
@@ -168,7 +176,7 @@ void parse_http_stream(http_connection* connection, uv_stream_t* stream, ssize_t
             //           (int) headers[i].value_len, headers[i].value);
             //}
 
-            printf("%d\n", pret);
+            printf("%d %d\n", pret, nread + connection->current_parsed_position);
 
             if (pret > 0) {
                 // Successfully parsed the HTTP request.
@@ -180,9 +188,11 @@ void parse_http_stream(http_connection* connection, uv_stream_t* stream, ssize_t
                 request->version = minor_version;
                 requests[number_of_requests] = request;
                 number_of_requests++;
-            } else if (pret == -2) {
+            } else if (pret == -1) {
                 // Request is incomplete.
                 printf("INCOMPLETE ");
+                break;
+            } else if (pret == -2) {
                 break;
             }
 
@@ -197,7 +207,11 @@ void parse_http_stream(http_connection* connection, uv_stream_t* stream, ssize_t
         }
 
         printf("reqs: %d buflen: %d nread: %d cbp: %d cpp: %d\n\n",
-               number_of_requests, buf->len, nread, connection->current_buffer_position, connection->current_parsed_position);
+               number_of_requests,
+               buf->len,
+               nread,
+               connection->current_buffer_position,
+               connection->current_parsed_position);
 
         if (connection->current_buffer_position == nread) {
             connection->current_buffer_position = 0;

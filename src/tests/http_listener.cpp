@@ -26,80 +26,93 @@ SCENARIO("http_listener receives http requests", "[http_listener]") {
         size_t suggested_size = 64000; // Matches default libuv provides.
         uv_buf_t* buffer = (uv_buf_t*)malloc(sizeof(uv_buf_t));
 
-        WHEN("requested to allocate 64KB of memory") {
-            uv_stream_on_alloc(client, suggested_size, buffer);
+        //WHEN("requested to allocate 64KB of memory") {
+        //    uv_stream_on_alloc(client, suggested_size, buffer);
+        //
+        //    THEN("a buffer with 64KB is allocated") {
+        //        REQUIRE(buffer->len == 64000);
+        //
+        //        AND_WHEN("requested to allocate another 64KB of memory") {
+        //            // We simulate a read of 100 bytes.
+        //            // The first 50 bytes represent a partial request.
+        //            // The second 50 bytes represent the completion of the request.
+        //            connection->current_buffer_position = 100;
+        //            connection->current_parsed_position = 50;
+        //
+        //            uv_buf_t* buffer2 = (uv_buf_t*)malloc(sizeof(uv_buf_t));
+        //            uv_stream_on_alloc(client, suggested_size, buffer2);
+        //
+        //            THEN("the previous buffer is reused from the previous offset") {
+        //                REQUIRE(buffer2->base == buffer->base + 50);
+        //                REQUIRE(buffer2->len == 64000 - 50);
+        //            }
+        //        }
+        //    }
+        //}
 
-            THEN("a buffer with 64KB is allocated") {
-                REQUIRE(buffer->len == 64000);
-
-                AND_WHEN("requested to allocate another 64KB of memory") {
-                    // We simulate a read of 100 bytes.
-                    // The first 50 bytes represent a partial request.
-                    // The second 50 bytes represent the completion of the request.
-                    connection->current_buffer_position = 100;
-                    connection->current_parsed_position = 50;
-
-                    uv_buf_t* buffer2 = (uv_buf_t*)malloc(sizeof(uv_buf_t));
-                    uv_stream_on_alloc(client, suggested_size, buffer2);
-
-                    THEN("the previous buffer is reused from the previous offset") {
-                        REQUIRE(buffer2->base == buffer->base + 50);
-                        REQUIRE(buffer2->len == 64000 - 50);
-                    }
-                }
-            }
-        }
-
-        WHEN("2 complete http request is received in the buffer") {
-            // Request new buffer.
-            uv_stream_on_alloc(client, suggested_size, buffer);
-
-            buffer->base = "GET /plaintext HTTP/1.0\r\n" \
-                    "Host: localhost:8000\r\n" \
-                    "User-Agent: curl/7.49.1\r\n" \
-                    "Accept: */*\r\n" \
-                    "\r\n" \
-                    "POST /json HTTP/1.1\r\n" \
-                    "Host: localhost:8000\r\n" \
-                    "User-Agent: curl/7.49.1\r\n" \
-                    "Accept: */*\r\n" \
-                    "\r\n";
-
-            THEN("2 http requests are parsed") {
-                listener->request_cb = [](
-                        http_connection* connection,
-                        http_request** requests,
-                        int number_of_requests) {
-
-                    num_requests = number_of_requests;
-                    reqs = requests;
-                };
-                uv_stream_on_read(stream, strlen(buffer->base), buffer);
-
-                REQUIRE(num_requests == 2);
-
-                // Verify the first request.
-                REQUIRE(sdscmp(reqs[0]->path, sdsnew("/plaintext")) == 0);
-                REQUIRE(sdscmp(reqs[0]->method, sdsnew("GET")) == 0);
-                REQUIRE(reqs[0]->version == 0);
-
-                // Verify the second request.
-                REQUIRE(sdscmp(reqs[1]->path, sdsnew("/json")) == 0);
-                REQUIRE(sdscmp(reqs[1]->method, sdsnew("POST")) == 0);
-                REQUIRE(reqs[1]->version == 1);
-            }
-        }
+        //WHEN("2 complete http request is received in the buffer") {
+        //    // Request new buffer.
+        //    uv_stream_on_alloc(client, suggested_size, buffer);
+        //
+        //    const char* req1 = "GET /plaintext HTTP/1.0\r\n" \
+        //            "Host: localhost:8000\r\n" \
+        //            "User-Agent: curl/7.49.1\r\n" \
+        //            "Accept: */*\r\n" \
+        //            "\r\n" \
+        //            "POST /json HTTP/1.1\r\n" \
+        //            "Host: localhost:8000\r\n" \
+        //            "User-Agent: curl/7.49.1\r\n" \
+        //            "Accept: */*\r\n" \
+        //            "\r\n";
+        //
+        //    strcpy(buffer->base, req1);
+        //
+        //
+        //    THEN("2 http requests are parsed") {
+        //        listener->request_cb = [](
+        //                http_connection* connection,
+        //                http_request** requests,
+        //                int number_of_requests) {
+        //
+        //            num_requests = number_of_requests;
+        //            reqs = requests;
+        //        };
+        //        uv_stream_on_read(stream, strlen(buffer->base), buffer);
+        //
+        //        REQUIRE(num_requests == 2);
+        //
+        //        // Verify the first request.
+        //        REQUIRE(sdscmp(reqs[0]->path, sdsnew("/plaintext")) == 0);
+        //        REQUIRE(sdscmp(reqs[0]->method, sdsnew("GET")) == 0);
+        //        REQUIRE(reqs[0]->version == 0);
+        //
+        //        // Verify the second request.
+        //        REQUIRE(sdscmp(reqs[1]->path, sdsnew("/json")) == 0);
+        //        REQUIRE(sdscmp(reqs[1]->method, sdsnew("POST")) == 0);
+        //        REQUIRE(reqs[1]->version == 1);
+        //    }
+        //}
 
         WHEN("1 complete and 1 incomplete http request is received in the buffer") {
             // Request new buffer.
             uv_stream_on_alloc(client, suggested_size, buffer);
 
-            buffer->base = "GET /plaintext HTTP/1.0\r\n" \
+            //buffer->base = "GET /plaintext HTTP/1.0\r\n" \
+            //        "Host: localhost:8000\r\n" \
+            //        "User-Agent: curl/7.49.1\r\n" \
+            //        "Accept: */*\r\n" \
+            //        "\r\n" \
+            //        "POST /json";
+
+            const char* req2 = "GET /plaintext HTTP/1.0\r\n" \
                     "Host: localhost:8000\r\n" \
                     "User-Agent: curl/7.49.1\r\n" \
                     "Accept: */*\r\n" \
                     "\r\n" \
                     "POST /json";
+
+            strcpy(buffer->base, req2);
+
 
             THEN("1 http request is parsed") {
                 listener->request_cb = [](
@@ -123,27 +136,18 @@ SCENARIO("http_listener receives http requests", "[http_listener]") {
                 AND_WHEN("the rest of the incomplete request is received in the buffer") {
                     num_requests = 0;
 
-                    // Request new buffer. Octane should detect a partial request
-                    // and re-use previous buffer from the last parsed offset.
-                    //uv_buf_t* buffer3 = (uv_buf_t*)malloc(sizeof(uv_buf_t));
-                    //uv_stream_on_alloc(client, suggested_size, buffer3);
-                    //
-                    //buffer3->base = " HTTP/1.1\r\n" \
-                    //        "Host: localhost:8000\r\n" \
-                    //        "User-Agent: curl/7.49.1\r\n" \
-                    //        "Accept: */*\r\n" \
-                    //        "\r\n";
-
+                    // Request new buffer. Octane should detect a partial request and re-use previous buffer from the
+                    // last parsed offset.
                     uv_buf_t* buffer3 = (uv_buf_t*)malloc(sizeof(uv_buf_t));
                     uv_stream_on_alloc(client, suggested_size, buffer3);
 
-                    const char* req2 = " HTTP/1.1\r\n" \
+                    const char* req3 = " HTTP/1.1\r\n" \
                         "Host: localhost:8000\r\n" \
                         "User-Agent: curl/7.49.1\r\n" \
                         "Accept: */*\r\n" \
                         "\r\n";
 
-                    memcpy(buffer3->base, req2, strlen(req2));
+                    strcpy(buffer->base, req3);
 
                     THEN("the completed request is parsed") {
                         listener->request_cb = [](
