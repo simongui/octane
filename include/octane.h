@@ -15,6 +15,7 @@ extern "C" {
 
 #include <stdbool.h>
 #include <uv.h>
+#include "sds.h"
 
 #ifdef _WIN32
     /* Windows - set up dll import/export decorators. */
@@ -64,6 +65,18 @@ typedef enum dispatch_type
     DISPATCH_TYPE_REUSEPORT,
 };
 
+typedef struct write_batch {
+    uv_write_t* write_req;
+    uv_buf_t* buffers;
+    size_t number_of_used_buffers;
+    size_t number_of_total_buffers;
+}write_batch;
+
+//OCTANE_EXTERN uv_write_t* create_write_with_batch(size_t number_of_total_buffers);
+OCTANE_EXTERN write_batch* create_write_batch(size_t number_of_total_buffers);
+OCTANE_EXTERN write_batch* get_write_batch_from_write_req(uv_write_t* write_req);
+OCTANE_EXTERN uv_write_t* get_write_req_from_write_batch(write_batch* batch);
+
 typedef enum connection_state
 {
     CONNECTION_OPEN,
@@ -72,16 +85,59 @@ typedef enum connection_state
 };
 
 /*
- * connection is a struct representing a TCP client connection to the server.
+ * http_connection
  */
-//typedef struct
-//{
-//    uv_tcp_t stream;
-//    enum {OPEN, CLOSING, CLOSED} state;
-//    void* data;
-//    int bytes_remaining;
-//    int request_length;
-//} connection;
+typedef struct http_connection http_connection;
+OCTANE_EXTERN int http_connection_is_writable(http_connection* connection);
+OCTANE_EXTERN int http_connection_write(http_connection* connection, write_batch* batch);
+OCTANE_EXTERN typedef void (*oct_connection_cb)(http_connection* connection, uv_stream_t* server, int status);
+OCTANE_EXTERN typedef void (*oct_alloc_cb)(http_connection* connection, uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf);
+OCTANE_EXTERN typedef void (*oct_read_cb)(http_connection* connection, uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf);
+
+/*
+ * http_request
+ */
+typedef enum http_request_state {
+    OK,
+    SIZE_EXCEEDED,
+    BAD_REQUEST,
+    INTERNAL_ERROR
+} http_request_state;
+
+typedef struct http_header {
+    sds key;
+    sds value;
+} http_header;
+
+typedef struct http_request {
+    sds method;
+    sds path;
+    int version;
+    http_header headers[100];
+}http_request;
+
+OCTANE_EXTERN http_request* new_http_request();
+OCTANE_EXTERN void free_http_request(http_request* request);
+OCTANE_EXTERN void free_http_requests(http_request** requests, int number_of_requests);
+OCTANE_EXTERN typedef void (*oct_request_cb)(http_connection* connection, http_request** requests, int number_of_requests);
+
+/*
+ * http_listener
+ */
+typedef struct http_listener {
+    uv_loop_t* loop;
+    oct_connection_cb connection_cb;
+    oct_alloc_cb alloc_cb;
+    oct_read_cb read_cb;
+    oct_request_cb request_cb;
+} http_listener;
+
+OCTANE_EXTERN http_listener* new_http_listener();
+OCTANE_EXTERN http_listener* get_listener_from_connection(http_connection* connection);
+OCTANE_EXTERN void begin_listening(http_listener* listener, const char* address, int port,
+                                   bool tcp_no_delay, unsigned int threads, unsigned int backlog,
+                                   oct_connection_cb connection_cb, oct_alloc_cb alloc_cb, oct_read_cb read_cb,
+                                   oct_request_cb request_cb);
 
 /*
  * uv_multi_listen is similar to uv_listen except it allows creating event
@@ -106,7 +162,10 @@ typedef enum connection_state
  * uv_alloc_cb
  *      Callback that gets called when libuv requires memory to be allocated.
  */
-OCTANE_EXTERN int uv_multi_listen(const char* address, int port, bool tcp_nodelay, unsigned int threads, enum dispatch_type dispatcher, uv_loop_t* loop, int connection_backlog, uv_connection_cb cb);
+OCTANE_EXTERN int uv_multi_listen(const char* address, int port, bool tcp_nodelay,
+                                  unsigned int threads, enum dispatch_type dispatcher,
+                                  uv_loop_t* loop, int connection_backlog, void* data,
+                                  uv_connection_cb cb);
 
 #ifdef __cplusplus
 }
