@@ -9,28 +9,6 @@
 void parse_http_stream(http_connection* connection, uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf);
 
 http_listener* new_http_listener() {
-
-    //uv_buf_t buffer;
-    //buffer.base = "GET /plaintext HTTP/1.1\r\n"
-    //        "Host: localhost:8000\r\n"
-    //        "User-Agent: curl/7.49.1\r\n"
-    //        "Accept: */*\r\n" \
-    //        "\r\n";
-
-    //buffer.base = "GET /plaintext HTTP/1.1\r\n"
-    //        "Host: localhost:8000\r\n"
-    //        "User-Agent: curl/7.49.1\r\n"
-    //        "Accept: */*\r\n" \
-    //        "\r\n" \
-    //        "GET /json HTTP/1.1\r\n"
-    //        "Host: localhost:8000\r\n"
-    //        "User-Agent: curl/7.49.1\r\n"
-    //        "Accept: */*\r\n" \
-    //        "\r\n";
-    //
-    //buffer.len = strlen(buffer.base);
-    //parse_http_stream(NULL, NULL, buffer.len, &buffer);
-
     http_listener* listener;
     size_t size = sizeof(http_listener);
     if(!(listener = (http_listener*)malloc(size))){
@@ -89,25 +67,6 @@ void uv_stream_on_alloc(uv_handle_t* client, size_t suggested_size, uv_buf_t* bu
         listener->alloc_cb(listener, client, suggested_size, buf);
     }
     if (listener->alloc_cb == NULL || buf->len == 0) {
-        //// No allocation function defined or no allocation happened so we default to allocating the size requested.
-        //if (connection->current_buffer_position > 0) {
-        //    //printf("%d\n", connection->current_buffer_position);
-        //    //printf("TWO: %.*s\n", connection->buffer.len, connection->buffer.base);
-        //    //printf("BASE2: %p\n", connection->buffer.base);
-        //    //if (connection->buffer.base == '\0') {
-        //    //    printf("HIT 2!!!!\n");
-        //    //}
-        //    buf->base = connection->buffer.base + connection->current_parsed_position;
-        //    buf->len = connection->buffer.len - connection->current_parsed_position;
-        //} else {
-        //    char *buffer;
-        //    if (!(buffer = (char *) malloc(suggested_size))) {
-        //        memory_error("Unable to allocate buffer of size %d", suggested_size);
-        //    }
-        //    connection->buffer = uv_buf_init(buffer, suggested_size);
-        //    *buf = connection->buffer;
-        //}
-
         bool success = buffer_alloc(connection->buffer, suggested_size);
         buffer_chunk chunk;
         chunk.size = 0;
