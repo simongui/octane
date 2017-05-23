@@ -2,6 +2,7 @@ projectpath = ${CURDIR}
 libuv_path = ${projectpath}/lib/libuv
 wrk_path = ${projectpath}/lib/wrk
 wrk2_path = ${projectpath}/lib/wrk2
+sds_path = ${projectpath}/lib/sds
 rapidjson_path = ${projectpath}/lib/rapidjson
 lockless_path = ${projectpath}/lib/lockless_allocator
 tcmalloc_path = ${projectpath}/lib/tcmalloc
@@ -57,7 +58,7 @@ xcode: deps
 	if [ ! -d "build/octane.xcodeproj" ]; then cd build;cmake -DCMAKE_OSX_ARCHITECTURES=x86_64 -G Xcode ..; fi
 	cd build;xcodebuild -project octane.xcodeproj/
 
-linux: $(lockless_path)
+linux: deps $(lockless_path)
 	rm -rf build
 	mkdir -p build
 	cd build;cmake ..
@@ -76,6 +77,9 @@ $(wrk_path)/wrk:
 $(wrk2_path)/wrk:
 	if [ ! -d "$(wrk2_path)" ]; then git clone https://github.com/giltene/wrk2.git $(wrk2_path); fi
 	cd $(wrk2_path);make
+
+$(sds_path):
+	if [ ! -d "$(sds_path)" ]; then git clone https://github.com/antirez/sds $(sds_path); fi
 
 $(rapidjson_path):
 	if [ ! -d "$(rapidjson_path)" ]; then git clone https://github.com/miloyip/rapidjson.git $(rapidjson_path); fi
